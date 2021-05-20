@@ -1,0 +1,205 @@
+{
+	"maize": {
+		"SM": {
+			"cropParams": {
+				"species": {
+					"=": [
+						"include-from-file",
+						"projects/sustag/maize.json"
+					],
+					"MaximumTemperatureForAssimilation": 46
+				},
+				"cultivar": {
+					"=": [
+						"include-from-file",
+						"projects/sustag/silage-maize.json"
+					],
+					"MaxAssimilationRate": 70,
+					"BeginSensitivePhaseHeatStress": 0,
+					"EndSensitivePhaseHeatStress": 0,
+					"OrganIdsForSecondaryYield": [
+						{
+							"organId": 2,
+							"type": "YieldComponent",
+							"yieldDryMatter": 0.32,
+							"yieldPercentage": 0.1
+						},
+						{
+							"organId": 3,
+							"type": "YieldComponent",
+							"yieldDryMatter": 0.32,
+							"yieldPercentage": 0.1
+						}
+					]
+				}
+			},
+			"residueParams": [
+				"include-from-file",
+				"crop-residues/maize.json"
+			]
+		}
+	},
+	"wheat": {
+		"WW": {
+			"cropParams": {
+				"species": [ "include-from-file", "projects/sustag/wheat.json" ],
+				"cultivar": {
+					"=": [ "include-from-file", "projects/sustag/winter-wheat.json" ],
+					"BeginSensitivePhaseHeatStress": 0,
+					"EndSensitivePhaseHeatStress": 0,
+					"OrganIdsForSecondaryYield": [
+						{
+							"organId": 2,
+							"type": "YieldComponent",
+							"yieldDryMatter": 0.86,
+							"yieldPercentage": 1
+						},
+						{
+							"organId": 3,
+							"type": "YieldComponent",
+							"yieldDryMatter": 0.86,
+							"yieldPercentage": 1
+						},
+						{
+							"organId": 4,
+							"type": "YieldComponent",
+							"yieldDryMatter": 0.86,
+							"yieldPercentage": 0.15
+						}
+					],
+					"MaxAssimilationRate": 29,
+					"AssimilatePartitioningCoeff": [
+						[
+							0.5,
+							0.5,
+							0,
+							0
+						],
+						[
+							0.25,
+							0.4,
+							0.35,
+							0
+						],
+						[
+							0.13,
+							0.2,
+							0.57,
+							0.1
+						],
+						[
+							0,
+							0,
+							0,
+							1
+						],
+						[
+							0,
+							0,
+							0,
+							1
+						],
+						[
+							0,
+							0,
+							0,
+							0
+						]
+					]
+				}
+			},
+			"residueParams": [ "include-from-file", "crop-residues/wheat.json" ]
+		}
+
+	},
+	"fert-params": {
+		"AN": [
+			"include-from-file",
+			"mineral-fertilisers/AN.json"
+		],
+		"CADLM": [
+			"include-from-file",
+			"organic-fertilisers/CADLM.json"
+		]
+	},
+	"cropRotation": [
+		{
+			"worksteps": [
+				{
+					"type": "AutomaticSowing",
+					"crop": [
+						"ref",
+						"wheat",
+						"WW"
+					],
+					"earliest-date": "0000-09-15",
+					"latest-date": "0000-11-15",
+					"min-temp": 1.0,
+					"days-in-temp-window": 7,
+					"min-%-asw": 0,
+					"max-%-asw": 100,
+					"max-3d-precip-sum": 999,
+					"max-curr-day-precip": 999,
+					"temp-sum-above-base-temp": 0,
+					"base-temp": 0,
+					"avg-soil-temp": {
+						"depth": 0.1,
+						"days": 5,
+						"Tavg": 5.1
+					}
+				},
+				{
+					"max-3d-precip-sum": 999,
+					"harvest-time": "maturity",
+					"max-curr-day-precip": 999,
+					"min-%-asw": -999,
+					"max-%-asw": 999,
+					"latest-date": "0000-09-05",
+					"type": "AutomaticHarvest"
+				}
+			]
+		},
+		{
+			"worksteps": [
+				{
+					"type": "AutomaticSowing",
+					"crop": [
+						"ref",
+						"maize",
+						"SM"
+					],
+					"earliest-date": "0000-03-15",
+					"latest-date": "0000-05-15",
+					"min-temp": 9.1,
+					"days-in-temp-window": 7,
+					"min-%-asw": 0,
+					"max-%-asw": 100,
+					"max-3d-precip-sum": 999,
+					"max-curr-day-precip": 999,
+					"temp-sum-above-base-temp": 0,
+					"base-temp": 0,
+					"avg-soil-temp": {
+						"depth": 0.1,
+						"days": 5,
+						"Tavg": 7.1
+					}
+				},
+				{
+					"max-3d-precip-sum": 999,
+					"harvest-time": "maturity",
+					"max-curr-day-precip": 999,
+					"min-%-asw": 0,
+					"max-%-asw": 100,
+					"latest-date": "0000-10-31",
+					"type": "AutomaticHarvest"
+				}
+			]
+		}
+	],
+	"CropParameters": {
+		"DEFAULT": [
+			"include-from-file",
+			"general/crop.json"
+		]
+	}
+}

@@ -1,0 +1,131 @@
+{
+	"output": [
+		"crop", [
+			["Crop", "FIRST"],
+			["Year", "LAST"],
+			["DOY|SowDOY", "FIRST"],
+			["DOY|HarvDOY", "LAST"],
+			["LAI|MaxLAI", "MAX"],
+			
+			["TraDef|tradef", "AVG"],
+			["FrostRed|frostred", "LAST"],
+			["Count|cycle-length", "SUM"],
+
+			["Act_ET|cum_ET", "SUM"],
+			["Mois|Mois_0_30_sow", [1, 3, "AVG"], "FIRST"],
+			["Mois|Mois_0_30_harv", [1, 3, "AVG"], "LAST"],
+			["Mois|Mois_30_60_sow", [4, 6, "AVG"], "FIRST"],
+			["Mois|Mois_30_60_harv", [4, 6, "AVG"], "LAST"],
+			["Mois|Mois_60_90_sow", [7, 9, "AVG"], "FIRST"],
+			["Mois|Mois_60_90_harv", [7, 9, "AVG"], "LAST"],
+			["Pwp|Pwp_0_30", [1, 3, "AVG"], "FIRST"],
+			["Pwp|Pwp_30_60", [4, 6, "AVG"], "FIRST"],
+			["Pwp|Pwp_60_90", [7, 9, "AVG"], "FIRST"],
+			["Irrig|cum_irri", "SUM"],
+			["NetNmin|sum_Nmin", "SUM"],
+
+			["Yield", "LAST"]
+		],
+
+		{"at": "xxxx-03-14"}, [
+			["Year", "LAST"],
+			["Mois|Mois_0_30_14Mar", [1, 3, "AVG"]],
+			["Mois|Mois_30_60_14Mar", [4, 6, "AVG"]],
+			["Mois|Mois_60_90_14Mar", [7, 9, "AVG"]]
+		],
+
+		{"while": ["Stage", "=", 2]}, [
+			["Year", "LAST"],
+			["DOY|EmergDOY", "FIRST"]
+		],
+
+		{"while": ["Stage", "=", 4]}, [
+			["Year", "LAST"],
+			["DOY|AntDOY_soy", "FIRST"]
+		],
+
+		{"while": ["Stage", "=", 5]}, [
+			["Year", "LAST"],
+			["DOY|AntDOY_maize", "FIRST"]
+		],
+
+		{"while": ["Stage", "=", 7]}, [
+			["Year", "LAST"],
+			["DOY|MatDOY", "FIRST"]
+		]	
+		
+	],
+
+	"output_long": [
+			"crop", [
+				["Year", "LAST"],
+				["DOY|SowDOY", "FIRST"],
+				["LAI|MaxLAI", "MAX"],
+				["PercolationRate|WDrain", 15, "SUM"],
+				["Act_ET|CumET", "SUM"],
+				["Act_Ev|Evap", "SUM"],
+				["Mois|SoilAvW", [1, 15, "SUM"], "LAST"],
+				["RunOff|Runoff", "SUM"],
+				["ET0|Eto", "SUM"],
+				["RelDev|reldev", "LAST"],
+				["TraDef|tradef", "AVG"],
+				["FrostRed|frostred", "LAST"],
+				["Count|cycle-length", "SUM"],
+				["NetNmin|sum_Nmin", "SUM"],
+				["Yield", "LAST"],
+				["AbBiom|Biom-harv", "LAST"],
+				["AbBiomN|CroN-harv", "LAST"],
+				["GrainN", "LAST"],
+				["STemp|STsow", [1, 2, "AVG"], "FIRST"],
+				["Tavg|ATsow", "FIRST"]
+			],
+
+			{"while": ["Stage", "=", 4]}, [
+				["Year", "LAST"],
+				["DOY|AntDOY", "FIRST"],
+				["AbBiom|Biom-an", "First"],
+				["AbBiomN|CroN-an", "FIRST"]
+			],
+
+			{"while": ["Stage", "=", 7]}, [
+				["Year", "LAST"],
+				["Yield", "FIRST"],
+				["DOY|MatDOY", "FIRST"], 
+				["AbBiom|Biom-ma", "First"],
+				["AbBiomN|CroN-ma", "FIRST"],
+				["GrainN", "FIRST"]
+			],
+			
+			{"while": ["Stage", "=", 2]}, [
+				["Year", "LAST"],
+				["DOY|EmergDOY", "FIRST"]
+			],
+
+			{"from": "Sowing", "to": "Harvest", "while": ["Tmin", "<", 0]},[
+				["Year", "LAST"],
+				["Count|frost-risk-days", "SUM"]				
+			],
+			
+
+			"_daily", [
+				"Date",
+				"Crop",
+				"Stage",
+				"AbBiom",
+				"LAI",
+				"Yield",
+				"TraDef",
+				"FrostRed"
+			]			
+	],
+	
+	"treatments": [
+		{
+			"TrtNo": "T1",
+			"ProdCase": "Actual",
+			"WaterDeficitResponseOn": true,
+			"FrostKillOn": true,
+			"Irrigate": false
+		}
+	]	
+}
