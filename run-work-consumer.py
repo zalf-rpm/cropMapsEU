@@ -92,57 +92,11 @@ def create_output(soil_ref, crop_id, first_cp, co2_id, co2_value, period, gcm, t
 
         for year, vals in year_to_vals.items():
             if len(vals) > 0 and year > 1980:
-                '''
-                #long output version
-                out.append([
-                    "MO",
-                    str(row) + "_" + str(col),
-                    "soy_" + crop_id,
-                    co2_id,
-                    period,
-                    gcm,
-                    str(co2_value),
-                    trt_no,
-                    prod_case,
-                    year,
-
-                    #vals.get("Stage", "na"),
-                    #vals.get("HeatRed", "na"),
-                    #vals.get("RelDev", "na"),
-
-                    vals.get("Yield", "na"),
-                    vals.get("AntDOY", "na"),
-                    vals.get("MatDOY", "na"),
-                    vals.get("Biom-an", "na"),
-                    vals.get("Biom-ma", "na"),
-                    vals.get("MaxLAI", "na"),
-                    vals.get("WDrain", "na"),
-                    vals.get("CumET", "na"),
-                    vals.get("SoilAvW", "na") * 100.0 if "SoilAvW" in vals else "na",
-                    vals.get("Runoff", "na"),
-                    vals["CumET"] - vals["Evap"] if "CumET" in vals and "Evap" in vals else "na",
-                    vals.get("Evap", "na"),
-                    vals.get("CroN-an", "na"),
-                    vals.get("CroN-ma", "na"),
-                    vals.get("GrainN", "na"),
-                    vals.get("Eto", "na"),
-                    vals.get("SowDOY", "na"),
-                    vals.get("EmergDOY", "na"),
-                    vals.get("reldev", "na"),
-                    vals.get("tradef", "na"),
-                    vals.get("frostred", "na"),
-                    vals.get("frost-risk-days", 0),
-                    vals.get("cycle-length", "na"),
-                    vals.get("STsow", "na"),
-                    vals.get("ATsow", "na")
-                    vals.get("sum_Nmin", "na")
-                ])
-                '''
                 current_crop = vals["Crop"],
                 if "maize" in current_crop[0]:
                     AntDOY = vals.get("AntDOY_maize", "na")
-                elif "soy" in current_crop[0]:
-                    AntDOY = vals.get("AntDOY_soy", "na")
+                elif "wheat" in current_crop[0]:
+                    AntDOY = vals.get("AntDOY_wheat", "na")
                 
                 #calculate SWC (i.e., SWC-PWP [mm])
                 def convert_SWC(SWC, PWP, depth_mm):
@@ -204,15 +158,6 @@ def create_output(soil_ref, crop_id, first_cp, co2_id, co2_value, period, gcm, t
 
     return out
 
-#+"Stage,HeatRed,RelDev,"\
-HEADER_long = "Model,soil_ref,Crop,period," \
-         + "sce,CO2,TrtNo,ProductionCase," \
-         + "Year," \
-         + "Yield,AntDOY,MatDOY,Biom-an,Biom-ma," \
-         + "MaxLAI,WDrain,CumET,SoilAvW,Runoff,Transp,Evap,CroN-an,CroN-ma," \
-         + "GrainN,ET0,SowDOY,EmergDOY,reldev,tradef,frostred,frost-risk-days,cycle-length,STsow,ATsow" \
-         + "\n"
-
 HEADER = "Model,soil_ref,first_crop,Crop,period," \
          + "sce,CO2,TrtNo,ProductionCase," \
          + "Year," \
@@ -231,9 +176,9 @@ def write_data(soil_ref, data, usermode):
     "write data"
 
     if usermode=="remoteConsumer-remoteMonica":
-        path_to_file = "/out/EU_SOY_MO_" + soil_ref + ".csv"
+        path_to_file = "/out/EU_WEB_MO_" + soil_ref + ".csv"
     else:
-        path_to_file = "./out/EU_SOY_MO_" + soil_ref + ".csv"
+        path_to_file = "./out/EU_WEB_MO_" + soil_ref + ".csv"
 
     if not os.path.isfile(path_to_file):# or (row, col) not in overwrite_list:
         with open(path_to_file, "w") as _:
