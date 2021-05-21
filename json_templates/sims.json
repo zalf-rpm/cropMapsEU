@@ -41,7 +41,7 @@
 
 		{"while": ["Stage", "=", 4]}, [
 			["Year", "LAST"],
-			["DOY|AntDOY_soy", "FIRST"]
+			["DOY|AntDOY_wheat", "FIRST"]
 		],
 
 		{"while": ["Stage", "=", 5]}, [

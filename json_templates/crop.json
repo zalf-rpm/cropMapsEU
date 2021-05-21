@@ -42,7 +42,9 @@
 	"wheat": {
 		"WW": {
 			"cropParams": {
-				"species": [ "include-from-file", "projects/sustag/wheat.json" ],
+				"species": {
+					"=": [ "include-from-file", "projects/sustag/wheat.json" ]
+				},
 				"cultivar": {
 					"=": [ "include-from-file", "projects/sustag/winter-wheat.json" ],
 					"BeginSensitivePhaseHeatStress": 0,
