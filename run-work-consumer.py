@@ -91,7 +91,7 @@ def create_output(soil_ref, crop_id, first_cp, co2_id, co2_value, period, gcm, t
                 year_to_vals[vals.get("Year", 0)].update(vals)
 
         for year, vals in year_to_vals.items():
-            if len(vals) > 0 and year > 1980:
+            if len(vals) > 0 and year >= 1980:
                 current_crop = vals["Crop"],
                 if "maize" in current_crop[0]:
                     AntDOY = vals.get("AntDOY_maize", "na")
