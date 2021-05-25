@@ -21,6 +21,7 @@ import gc
 import csv
 import types
 import os
+import json 
 from datetime import datetime
 from collections import defaultdict
 
@@ -54,7 +55,7 @@ CONFIGURATION = {
 def create_output(soil_ref, crop_id, first_cp, co2_id, co2_value, period, gcm, trt_no, prod_case, result):
     "create crop output lines"
 
-    print(result)
+    json.dump(result, sys.stdout)
     out = []
     if len(result.get("data", [])) > 0 and len(result["data"][0].get("results", [])) > 0:
         year_to_vals = defaultdict(dict)
