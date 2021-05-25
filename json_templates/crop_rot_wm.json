@@ -31,7 +31,7 @@
                 "max-curr-day-precip": 999,
                 "min-%-asw": -999,
                 "max-%-asw": 999,
-                "latest-date": "0001-09-05",
+                "latest-date": "0000-09-05",
                 "type": "AutomaticHarvest"
             }
         ]
@@ -45,8 +45,8 @@
                     "maize",
                     "SM"
                 ],
-                "earliest-date": "0002-03-15",
-                "latest-date": "0002-05-15",
+                "earliest-date": "0001-03-15",
+                "latest-date": "0001-05-15",
                 "min-temp": 9.1,
                 "days-in-temp-window": 7,
                 "min-%-asw": 0,
@@ -67,7 +67,7 @@
                 "max-curr-day-precip": 999,
                 "min-%-asw": 0,
                 "max-%-asw": 100,
-                "latest-date": "0002-10-15",
+                "latest-date": "0001-10-15",
                 "type": "AutomaticHarvest"
             }
         ]
