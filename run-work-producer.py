@@ -40,7 +40,7 @@ PATHS = {
     },
     "localProducer-remoteMonica": {
         "monica-project-data": ".",
-        "monica-parameters-path": "D:/zalfrpm/monica-parameters/", # path to monica-parameters
+        "monica-parameters-path": "C:/zalf-rpm/monica-parameters/", # path to monica-parameters
         "monica-path-to-climate-dir": "/monica_data/climate-data/macsur_european_climate_scenarios_v3/testing/corrected/", # mounted path to archive accessable by monica executable
     },
     "remoteProducer-remoteMonica": {
@@ -108,6 +108,12 @@ def run_producer(config):
 
     with open(template_folder + "sims.json") as _:
         sims = json.load(_)
+
+    # load extra files for crop rotations
+    with open(template_folder + "crop_rot_mw.json") as _:
+        crop_rot_mw = json.load(_)
+    with open(template_folder + "crop_rot_wm.json") as _:
+        crop_rot_wm = json.load(_)
 
     # with open(template_folder +"irrigations.json") as _:
     #     irrigation = json.load(_)
@@ -203,61 +209,52 @@ def run_producer(config):
         site["SiteParameters"]["Latitude"] = custom_site["latitude"]
         site["SiteParameters"]["SoilProfileParameters"] = custom_site["soil-profile"]
 
-        env = monica_io3.create_env_json_from_json_config({
-            "crop": crop,
-            "site": site,
-            "sim": sim,
-            "climate": ""
-        })
-        
-        env["csvViaHeaderOptions"] = sim["climate.csv-options"]
+        for idxcr in range(0,2) :
+            if idxcr == 0 :
+                crop["cropRotation"] = crop_rot_wm["cropRotation"]
+            else :
+                crop["cropRotation"] = crop_rot_mw["cropRotation"]
 
-        for pgc in period_gcm_co2s:
-            co2_id = pgc["id"]
-            co2_value = pgc["co2_value"]
-            period = pgc["period"]
-            gcm = pgc["gcm"]
-
-            if period not in run_periods:
-                continue
-
-            env["params"]["userEnvironmentParameters"]["AtmosphericCO2"] = co2_value
+            env = monica_io3.create_env_json_from_json_config({
+                "crop": crop,
+                "site": site,
+                "sim": sim,
+                "climate": ""
+            })
             
-            if USER_MODE == "localProducer-localMonica":
-                climatefile_version = "v1"
-            elif USER_MODE == "localProducer-remoteMonica":
-                climatefile_version = "v3test"
-            elif USER_MODE == "remoteProducer-remoteMonica":
-                climatefile_version = "v3test"
-            climateLocation = soil[soil_ref]["climate_location"]
-            climate_filename = "{}_{}.csv".format(climateLocation, climatefile_version)
+            env["csvViaHeaderOptions"] = sim["climate.csv-options"]
 
-            #read climate data on the server and send just the path to the climate data csv file
-            env["pathToClimateCSV"] = paths["monica-path-to-climate-dir"] + period + "/" + gcm + "/" + climate_filename
+            for pgc in period_gcm_co2s:
+                co2_id = pgc["id"]
+                co2_value = pgc["co2_value"]
+                period = pgc["period"]
+                gcm = pgc["gcm"]
 
-            env["events"] = sims["output"]
+                if period not in run_periods:
+                    continue
 
-            for sim_ in sims["treatments"]:
-                env["params"]["simulationParameters"]["UseAutomaticIrrigation"] = False
-                env["params"]["simulationParameters"]["WaterDeficitResponseOn"] = sim_["WaterDeficitResponseOn"]
-                env["params"]["simulationParameters"]["FrostKillOn"] = sim_["FrostKillOn"]
-
-                # n_steps = len(env["cropRotation"][0]["worksteps"])
-                # if sim_["Irrigate"]:
-                #     if n_steps ==2:
-                #         #add irrigation
-                #         for irri in irrigation["irristeps"]:
-                #             env["cropRotation"][0]["worksteps"].append(irri)
-                #             env["cropRotation"][1]["worksteps"].append(irri)
-                # if not sim_["Irrigate"]:
-                #     if n_steps == 35:
-                #         #remove irrigation
-                #         env["cropRotation"][0]["worksteps"] = [env["cropRotation"][0]["worksteps"][0], env["cropRotation"][0]["worksteps"][1]]
-                #         env["cropRotation"][1]["worksteps"] = [env["cropRotation"][1]["worksteps"][0], env["cropRotation"][1]["worksteps"][1]]
+                env["params"]["userEnvironmentParameters"]["AtmosphericCO2"] = co2_value
                 
+                if USER_MODE == "localProducer-localMonica":
+                    climatefile_version = "v1"
+                elif USER_MODE == "localProducer-remoteMonica":
+                    climatefile_version = "v3test"
+                elif USER_MODE == "remoteProducer-remoteMonica":
+                    climatefile_version = "v3test"
+                climateLocation = soil[soil_ref]["climate_location"]
+                climate_filename = "{}_{}.csv".format(climateLocation, climatefile_version)
 
-                for _ in range(len(env["cropRotation"])):
-                    rotate(env["cropRotation"])
+                #read climate data on the server and send just the path to the climate data csv file
+                env["pathToClimateCSV"] = paths["monica-path-to-climate-dir"] + period + "/" + gcm + "/" + climate_filename
+
+                env["events"] = sims["output"]
+
+                for sim_ in sims["treatments"]:
+                    env["params"]["simulationParameters"]["UseAutomaticIrrigation"] = sim_["Irrigate"]
+                    env["params"]["simulationParameters"]["WaterDeficitResponseOn"] = sim_["WaterDeficitResponseOn"]
+                    env["params"]["simulationParameters"]["FrostKillOn"] = sim_["FrostKillOn"]
+
+                    
                     try:
                         first_cp = env["cropRotation"][0]["worksteps"][0]["crop"]["cropParams"]["species"]["="]["SpeciesName"]
                     except:
@@ -277,11 +274,11 @@ def run_producer(config):
 
                         
                     print("sent env ", i, " customId: ", list(env["customId"].values()))
-                    # filename = "./envtest/V" + str(i) + "_" + soil_ref +"_"+ env["customId"]["trt_no"] +"_"+ env["customId"]["gcm"] +"_"+ env["customId"]["crop_id"] +".json"
-                    # WriteEnv(filename, env) 
+                    #filename = "./envtest/V" + str(i) + "_" + soil_ref +"_"+ env["customId"]["trt_no"] +"_"+ env["customId"]["gcm"] +"_"+ env["customId"]["crop_id"] +".json"
+                    #WriteEnv(filename, env) 
                     socket.send_json(env)                        
                     i += 1
-        #exit()
+            #exit()
 
     stop_store = time.process_time()
 

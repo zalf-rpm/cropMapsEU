@@ -48,8 +48,8 @@
 			"nitrateConcentration": [0, "mg dm-3"],
 			"sulfateConcentration": [0, "mg dm-3"]
 		},
-		"amount": [0, "mm"],
-		"threshold": 0.9
+		"amount": [40, "mm"],
+		"threshold": 0.5
 	},
 
 	"UseNMinMineralFertilisingMethod": true,
