@@ -40,7 +40,7 @@ PATHS = {
     },
     "localProducer-remoteMonica": {
         "monica-project-data": ".",
-        "monica-parameters-path": "C:/zalf-rpm/monica-parameters/", # path to monica-parameters
+        "monica-parameters-path": "D:/zalfrpm/monica-parameters/", # path to monica-parameters
         "monica-path-to-climate-dir": "/monica_data/climate-data/macsur_european_climate_scenarios_v3/testing/corrected/", # mounted path to archive accessable by monica executable
     },
     "remoteProducer-remoteMonica": {
@@ -61,8 +61,8 @@ CONFIGURATION = {
     "mode": USER_MODE,
     "server": None,
     "server-port": "6666",
-    "start-row": 1, 
-    "end-row": -1,
+    "start-row": 28430, 
+    "end-row": 28446,
     "run-periods": "[0,2]"
 }
 
@@ -134,6 +134,23 @@ def run_producer(config):
 
     soil = {}
     row_cols = []
+    dates = dict()
+
+    with open(os.path.join(paths["monica-project-data"], "stu_eu_layer_grid_management.csv")) as _:
+        reader = csv.reader(_)
+        next(reader)
+        for row in reader:
+            soil_ref = row[0]
+            #soil_ref,latitude,longitude,sowStartM,sowStartW,sowEndM,sowEndW,harvestM,harvestW 
+            dates[soil_ref] = {
+                "sowStartM": row[3],
+                "sowStartW": row[4],
+                "sowEndM":   row[5],
+                "sowEndW":   row[6],
+                "harvestM":  row[7],
+                "harvestW":  row[8]
+            }
+
     print(os.path.join(paths["monica-project-data"], "stu_eu_layer_ref.csv"))
     with open(os.path.join(paths["monica-project-data"], "stu_eu_layer_ref.csv")) as _:
         reader = csv.reader(_)
@@ -209,11 +226,36 @@ def run_producer(config):
         site["SiteParameters"]["Latitude"] = custom_site["latitude"]
         site["SiteParameters"]["SoilProfileParameters"] = custom_site["soil-profile"]
 
+        def setDates( sowFs,sowFe,harF,sowSs,sowSe,harS) :
+            #sowing first crop
+            str = crop["cropRotation"][0]["worksteps"][0]["earliest-date"] 
+            crop["cropRotation"][0]["worksteps"][0]["earliest-date"] = doyToDate(1981, sowFs, str)
+
+            str = crop["cropRotation"][0]["worksteps"][0]["latest-date"]
+            crop["cropRotation"][0]["worksteps"][0]["latest-date"] = doyToDate(1981, sowFe, str)
+            # harvest
+            str = crop["cropRotation"][0]["worksteps"][1]["latest-date"]
+            crop["cropRotation"][0]["worksteps"][1]["latest-date"]= doyToDate(1981, harF, str)
+
+            #sowing second crop
+            str = crop["cropRotation"][1]["worksteps"][0]["earliest-date"] 
+            crop["cropRotation"][1]["worksteps"][0]["earliest-date"] = doyToDate(1981, sowSs, str)
+
+            str = crop["cropRotation"][1]["worksteps"][0]["latest-date"]
+            crop["cropRotation"][1]["worksteps"][0]["latest-date"]= doyToDate(1981, sowSe, str)
+            # harvest
+            str = crop["cropRotation"][1]["worksteps"][1]["latest-date"]
+            crop["cropRotation"][1]["worksteps"][1]["latest-date"]= doyToDate(1981, harS, str)
+
+
         for idxcr in range(0,2) :
+            mDat = dates[soil_ref]            
             if idxcr == 0 :
                 crop["cropRotation"] = crop_rot_wm["cropRotation"]
+                setDates(mDat["sowStartW"],mDat["sowEndW"],mDat["harvestW"],mDat["sowStartM"],mDat["sowEndM"],mDat["harvestM"])
             else :
                 crop["cropRotation"] = crop_rot_mw["cropRotation"]
+                setDates(mDat["sowStartM"],mDat["sowEndM"],mDat["harvestM"], mDat["sowStartW"],mDat["sowEndW"],mDat["harvestW"])
 
             env = monica_io3.create_env_json_from_json_config({
                 "crop": crop,
@@ -285,6 +327,20 @@ def run_producer(config):
     print("sending ", i, " envs took ", (stop_store - start_store), " seconds")
     print("ran from ", start, "/", row_cols[start], " to ", end, "/", row_cols[end])
     return
+
+def doyToDate(year, doy, defaultStr) :
+  
+    # adjusting day num
+    doy.rjust(3 + len(doy), '0')
+
+    # Initializing start date
+    strt_date = date(int(year), 1, 1)
+  
+    # converting to date
+    res_date = strt_date + timedelta(days=int(doy) - 1)
+    res = res_date.strftime("%m-%d")
+    parts = defaultStr.split("-")
+    return parts[0] +"-" + res
 
 def WriteEnv(filename, env) :
     if not os.path.exists(os.path.dirname(filename)):
