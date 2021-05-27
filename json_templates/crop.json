@@ -134,7 +134,7 @@
 						"wheat",
 						"WW"
 					],
-					"earliest-date": "0000-09-15",
+					"earliest-date": "0000-10-15",
 					"latest-date": "0000-11-15",
 					"min-temp": 1.0,
 					"days-in-temp-window": 7,

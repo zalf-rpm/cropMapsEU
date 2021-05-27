@@ -265,7 +265,13 @@ def run_producer(config):
             })
             
             env["csvViaHeaderOptions"] = sim["climate.csv-options"]
-
+            if idxcr == 0 :
+                env["csvViaHeaderOptions"]["start-date"] = ""
+                enddate = doyToDate(2010, dates[soil_ref]["harvestM"], "2010-01-01", datestr = "%m-%d")
+                env["csvViaHeaderOptions"]["end-date"] = enddate
+            else:
+                env["csvViaHeaderOptions"]["start-date"] = "1981-01-01"
+                env["csvViaHeaderOptions"]["end-date"] = ""
             for pgc in period_gcm_co2s:
                 co2_id = pgc["id"]
                 co2_value = pgc["co2_value"]
@@ -328,7 +334,7 @@ def run_producer(config):
     print("ran from ", start, "/", row_cols[start], " to ", end, "/", row_cols[end])
     return
 
-def doyToDate(year, doy, defaultStr) :
+def doyToDate(year, doy, defaultStr, datestr = "%m-%d") :
   
     # adjusting day num
     doy.rjust(3 + len(doy), '0')
@@ -338,7 +344,7 @@ def doyToDate(year, doy, defaultStr) :
   
     # converting to date
     res_date = strt_date + timedelta(days=int(doy) - 1)
-    res = res_date.strftime("%m-%d")
+    res = res_date.strftime(datestr)
     parts = defaultStr.split("-")
     return parts[0] +"-" + res
 
