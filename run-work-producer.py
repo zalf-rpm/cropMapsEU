@@ -61,8 +61,8 @@ CONFIGURATION = {
     "mode": USER_MODE,
     "server": None,
     "server-port": "6666",
-    "start-row": 28430, 
-    "end-row": 28446,
+    "start-row": 1, 
+    "end-row": -1,
     "run-periods": "[0,2]"
 }
 
@@ -121,7 +121,7 @@ def run_producer(config):
     period_gcm_co2s = [
         {"id": "C1", "period": "0", "gcm": "0_0", "co2_value": 360},
         # #{"id": "C26", "period": "2", "gcm": "GFDL-CM3_45", "co2_value": 499},
-        # {"id": "C28", "period": "2", "gcm": "GFDL-CM3_85", "co2_value": 571},
+        {"id": "C28", "period": "2", "gcm": "GFDL-CM3_85", "co2_value": 571},
         # #{"id": "C30", "period": "2", "gcm": "GISS-E2-R_45", "co2_value": 499},
         # {"id": "C32", "period": "2", "gcm": "GISS-E2-R_85", "co2_value": 571},
         # #{"id": "C36", "period": "2", "gcm": "HadGEM2-ES_45", "co2_value": 499},

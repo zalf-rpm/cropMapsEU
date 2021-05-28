@@ -12,11 +12,11 @@ def build() :
     gridFile = "./stu_eu_layer_grid.csv"
     pathSowingStartM = "./asciigrids_debug/Maize.crop.calendar.fill/plant.start.asc"
     pathSowingEndM = "./asciigrids_debug/Maize.crop.calendar.fill/plant.end.asc"
-    pathEndHarvestM = "./asciigrids_debug/Maize.crop.calendar.fill/harvest.asc"
+    pathEndHarvestM = "./asciigrids_debug/Maize.crop.calendar.fill/harvest.end.asc"
 
     pathSowingStartWW = "./asciigrids_debug/Wheat.Winter.crop.calendar.fill/plant.start.asc"
     pathSowingEndWW = "./asciigrids_debug/Wheat.Winter.crop.calendar.fill/plant.end.asc"
-    pathEndHarvestWW = "./asciigrids_debug/Wheat.Winter.crop.calendar.fill/harvest.asc"
+    pathEndHarvestWW = "./asciigrids_debug/Wheat.Winter.crop.calendar.fill/harvest.end.asc"
 
     outFile = "./stu_eu_layer_grid_management.csv"
     
