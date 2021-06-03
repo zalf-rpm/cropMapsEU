@@ -182,6 +182,7 @@ func main() {
 
 			p.setOutputGridsGenerated(simulations, maxRefNo)
 
+			counter := make(map[SimKeyTuple]int)
 			for simKey := range simulations {
 				pixelValue := CalculatePixel(simulations[simKey])
 				p.setMaxAllAvgYield(pixelValue)
@@ -190,6 +191,33 @@ func main() {
 
 				p.allGrids[simKey][refIDIndex] = int(pixelValue)
 				p.StdDevAvgGrids[simKey][refIDIndex] = int(stdDeviation)
+
+				if simKey.climateSenario != "0_0" {
+					futureSimKey := SimKeyTuple{
+						treatNo:        simKey.treatNo,
+						climateSenario: "future",
+						crop:           simKey.crop,
+						comment:        simKey.comment,
+					}
+					counter[futureSimKey]++
+					p.allGrids[futureSimKey][refIDIndex] = p.allGrids[futureSimKey][refIDIndex] + int(pixelValue)
+				}
+			}
+			for futureSimKey := range counter {
+				p.allGrids[futureSimKey][refIDIndex] = p.allGrids[futureSimKey][refIDIndex] / counter[futureSimKey]
+				histSimKey := SimKeyTuple{
+					treatNo:        futureSimKey.treatNo,
+					climateSenario: "0_0",
+					crop:           futureSimKey.crop,
+					comment:        futureSimKey.comment,
+				}
+				diffKey := SimKeyTuple{
+					treatNo:        futureSimKey.treatNo,
+					climateSenario: "diff",
+					crop:           futureSimKey.crop,
+					comment:        futureSimKey.comment,
+				}
+				p.allGrids[diffKey][refIDIndex] = p.allGrids[futureSimKey][refIDIndex] - p.allGrids[histSimKey][refIDIndex]
 			}
 
 			p.incProgressBar(showBar)
@@ -282,7 +310,7 @@ func main() {
 		p.allGrids[SimKeyTuple{"T2", "GFDL-CM3_85", cropNameFull, "irrigated"}],
 		nil,
 		&irrLookup,
-		"%s_future.asc",
+		"%s_GFDL-CM3_85.asc",
 		fmt.Sprintf("irr_mask_%s", cropName),
 		extCol, extRow, 0, 0,
 		asciiOutFolder,
@@ -297,6 +325,36 @@ func main() {
 		p.allGrids[SimKeyTuple{"T1", "GFDL-CM3_85", cropNameFull, "Actual"}],
 		nil,
 		&rainfedLookup,
+		"%s_GFDL-CM3_85.asc",
+		fmt.Sprintf("rainfed_mask_%s", cropName),
+		extCol, extRow, 0, 0,
+		asciiOutFolder,
+		fmt.Sprintf("rainfed %s", cropNameFull),
+		"[t ha–1]",
+		"jet",
+		nil, nil, nil, 0.001, 0,
+		int(p.maxAllAvgYield), "", outC)
+
+	waitForNum++
+	go drawIrrigationMaps(&gridSourceLookup,
+		p.allGrids[SimKeyTuple{"T2", "future", cropNameFull, "irrigated"}],
+		nil,
+		&irrLookup,
+		"%s_future.asc",
+		fmt.Sprintf("irr_mask_%s", cropName),
+		extCol, extRow, 0, 0,
+		asciiOutFolder,
+		fmt.Sprintf("irrigated %s", cropNameFull),
+		"[t ha–1]",
+		"jet",
+		nil, nil, nil, 0.001, 0,
+		int(p.maxAllAvgYield), "", outC)
+
+	waitForNum++
+	go drawIrrigationMaps(&gridSourceLookup,
+		p.allGrids[SimKeyTuple{"T1", "future", cropNameFull, "Actual"}],
+		nil,
+		&rainfedLookup,
 		"%s_future.asc",
 		fmt.Sprintf("rainfed_mask_%s", cropName),
 		extCol, extRow, 0, 0,
@@ -305,6 +363,36 @@ func main() {
 		"[t ha–1]",
 		"jet",
 		nil, nil, nil, 0.001, 0,
+		int(p.maxAllAvgYield), "", outC)
+
+	waitForNum++
+	go drawIrrigationMaps(&gridSourceLookup,
+		p.allGrids[SimKeyTuple{"T2", "diff", cropNameFull, "irrigated"}],
+		nil,
+		&irrLookup,
+		"%s_diff.asc",
+		fmt.Sprintf("irr_mask_%s", cropName),
+		extCol, extRow, 0, 0,
+		asciiOutFolder,
+		fmt.Sprintf("irrigated %s", cropNameFull),
+		"[t ha–1]",
+		"PiYG",
+		nil, nil, nil, 0.001, int(p.maxAllAvgYield*(-1)),
+		int(p.maxAllAvgYield), "", outC)
+
+	waitForNum++
+	go drawIrrigationMaps(&gridSourceLookup,
+		p.allGrids[SimKeyTuple{"T1", "diff", cropNameFull, "Actual"}],
+		nil,
+		&rainfedLookup,
+		"%s_diff.asc",
+		fmt.Sprintf("rainfed_mask_%s", cropName),
+		extCol, extRow, 0, 0,
+		asciiOutFolder,
+		fmt.Sprintf("rainfed %s", cropNameFull),
+		"[t ha–1]",
+		"PiYG",
+		nil, nil, nil, 0.001, int(p.maxAllAvgYield*(-1)),
 		int(p.maxAllAvgYield), "", outC)
 
 	for waitForNum > 0 {
@@ -370,8 +458,31 @@ func (p *ProcessedData) setOutputGridsGenerated(simulations map[SimKeyTuple][]fl
 		p.outputGridsGenerated = true
 		out = true
 		for simKey := range simulations {
-			p.allGrids[simKey] = newGridLookup(maxRefNo, NONEVALUE)
-			p.StdDevAvgGrids[simKey] = newGridLookup(maxRefNo, NONEVALUE)
+			p.allGrids[simKey] = newGridLookup(maxRefNo, 0)
+			p.StdDevAvgGrids[simKey] = newGridLookup(maxRefNo, 0)
+
+			if simKey.climateSenario != "0_0" {
+				futureSimKey := SimKeyTuple{
+					treatNo:        simKey.treatNo,
+					climateSenario: "future",
+					crop:           simKey.crop,
+					comment:        simKey.comment,
+				}
+				if _, ok := p.allGrids[futureSimKey]; !ok {
+					p.allGrids[futureSimKey] = newGridLookup(maxRefNo, 0)
+				}
+			} else {
+				diffKey := SimKeyTuple{
+					treatNo:        simKey.treatNo,
+					climateSenario: "diff",
+					crop:           simKey.crop,
+					comment:        simKey.comment,
+				}
+				if _, ok := p.allGrids[diffKey]; !ok {
+					p.allGrids[diffKey] = newGridLookup(maxRefNo, 0)
+				}
+			}
+
 		}
 	}
 	p.mux.Unlock()
@@ -824,9 +935,4 @@ func getMaskGridLookup(gridsource string) map[GridCoord]bool {
 		}
 	}
 	return lookup
-}
-
-func isIrrigated(row, col int, lookup *map[GridCoord]bool) bool {
-	_, ok := (*lookup)[GridCoord{row, col}]
-	return ok
 }
