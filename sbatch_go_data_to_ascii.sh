@@ -18,7 +18,7 @@ cd $IMAGE_DIR_GO
 singularity pull docker://golang:1.14.4
 cd ~
 fi
-cd ~/go/src/github.com/soybean-EU
+cd ~/go/src/github.com/cropMapsEU
 singularity run ~/singularity/other/golang_1.14.4.sif go get github.com/cheggaaa/pb && \
     go get gonum.org/v1/gonum/stat && \
     go build -v -o DataToAscii
