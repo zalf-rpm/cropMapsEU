@@ -35,7 +35,9 @@ singularity run ~/singularity/other/golang_1.14.4.sif go get github.com/cheggaaa
     go get gonum.org/v1/gonum/stat && \
     go build -v -o DataToAscii
 
-./DataToAscii -path Cluster -source /beegfs/rpm/projects/monica/out/sschulz_2274_2021-28-May_131548 -project /beegfs/rpm/projects/monica/project/soybeanEU -out .
+./DataToAscii -path Cluster -crop maize -source /beegfs/rpm/projects/monica/out/sschulz_2274_2021-28-May_131548 -project /beegfs/rpm/projects/monica/project/soybeanEU -out .
+./DataToAscii -path Cluster -crop wheat -source /beegfs/rpm/projects/monica/out/sschulz_2274_2021-28-May_131548 -project /beegfs/rpm/projects/monica/project/soybeanEU -out .
+
 
 FOLDER=$( pwd )
 IMG=~/singularity/python/python3.7_2.0.sif
