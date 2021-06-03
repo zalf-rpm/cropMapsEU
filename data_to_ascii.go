@@ -20,11 +20,11 @@ import (
 const asciiOutFilenameAvg = "avg_%s_trno%s.asc"          // crop_treatmentnumber
 const asciiOutFilenameDeviAvg = "devi_avg_%s_trno%s.asc" // crop_treatmentnumber
 
+const rainfedMask = "stu_eu_layer_grid_Rainfed_%s_GrowingArea_EU.csv"     // Crop first letter upper case
+const irrigatedMask = "stu_eu_layer_grid_Irrigated_%s_GrowingArea_EU.csv" // Crop irst letter upper case
+
 // USER switch for setting
 const USER = "local"
-
-// CROPNAME to analyse
-//const CROPNAME = "maize"
 
 // NONEVALUE for ascii table
 const NONEVALUE = -9999
@@ -40,28 +40,25 @@ func main() {
 			"projectdatapath": "./",
 			"sourcepath":      "./source/",
 			"outputpath":      ".",
-			"climate-data":    "./climate-data/corrected/", // path to climate data
-			"ascii-out":       "asciigrids_debug/",         // path to ascii grids
-			"png-out":         "png_debug/",                // path to png images
-			"pdf-out":         "pdf-out_debug/",            // path to pdf package
+			"ascii-out":       "asciigrids_debug/", // path to ascii grids
+			"png-out":         "png_debug/",        // path to png images
+			"pdf-out":         "pdf-out_debug/",    // path to pdf package
 		},
 		"test": {
 			"projectdatapath": "./",
 			"sourcepath":      "./source/",
 			"outputpath":      "./testout/",
-			"climate-data":    "./climate-data/corrected/", // path to climate data
-			"ascii-out":       "asciigrids2/",              // path to ascii grids
-			"png-out":         "png2/",                     // path to png images
-			"pdf-out":         "pdf-out2/",                 // path to pdf package
+			"ascii-out":       "asciigrids2/", // path to ascii grids
+			"png-out":         "png2/",        // path to png images
+			"pdf-out":         "pdf-out2/",    // path to pdf package
 		},
 		"Cluster": {
 			"projectdatapath": "/project/",
 			"sourcepath":      "/source/",
 			"outputpath":      "/out/",
-			"climate-data":    "/climate-data/", // path to climate data
-			"ascii-out":       "asciigrid/",     // path to ascii grids
-			"png-out":         "png/",           // path to png images
-			"pdf-out":         "pdf-out/",       // path to pdf package
+			"ascii-out":       "asciigrid/", // path to ascii grids
+			"png-out":         "png/",       // path to png images
+			"pdf-out":         "pdf-out/",   // path to pdf package
 		},
 	}
 
@@ -81,6 +78,7 @@ func main() {
 	outputFolder := *outPtr
 	projectpath := *projectPtr
 	cropName := *cropNamePtr
+	cropNameFull := *cropNamePtr
 
 	if len(sourceFolder) == 0 {
 		sourceFolder = PATHS[pathID]["sourcepath"]
@@ -93,9 +91,13 @@ func main() {
 	}
 
 	asciiOutFolder := filepath.Join(outputFolder, PATHS[pathID]["ascii-out"])
+	irrgigationSource := filepath.Join(projectpath, fmt.Sprintf(irrigatedMask, strings.Title(cropName)))
+	rainfedSource := filepath.Join(projectpath, fmt.Sprintf(rainfedMask, strings.Title(cropName)))
 
 	gridSource := filepath.Join(projectpath, "stu_eu_layer_grid.csv")
 	extRow, extCol, gridSourceLookup := GetGridLookup(gridSource)
+	irrLookup := getMaskGridLookup(irrgigationSource)
+	rainfedLookup := getMaskGridLookup(rainfedSource)
 
 	filelist, err := ioutil.ReadDir(sourceFolder)
 	if err != nil {
@@ -164,6 +166,7 @@ func main() {
 					}
 					// check for the lines with a specific crop
 					if IsCrop(lineKey, cropName) && (lineKey.treatNo == "T1" || lineKey.treatNo == "T2") {
+						cropNameFull = lineKey.crop
 						yieldValue := lineContent.yields
 						yearValue := lineContent.year
 						if _, ok := simulations[lineKey]; !ok {
@@ -243,6 +246,66 @@ func main() {
 		nil, nil, 1.0, 0,
 		int(p.maxSdtDeviation),
 		"std average yield grids", outC)
+
+	waitForNum++
+	go drawIrrigationMaps(&gridSourceLookup,
+		p.allGrids[SimKeyTuple{"T2", "0_0", cropNameFull, "irrigated"}],
+		nil,
+		&irrLookup,
+		"%s_historical.asc",
+		fmt.Sprintf("irr_mask_%s", cropName),
+		extCol, extRow, 0, 0,
+		asciiOutFolder,
+		fmt.Sprintf("irrigated %s", cropNameFull),
+		"[t ha–1]",
+		"jet",
+		nil, nil, nil, 0.001, 0,
+		int(p.maxAllAvgYield), "", outC)
+
+	waitForNum++
+	go drawIrrigationMaps(&gridSourceLookup,
+		p.allGrids[SimKeyTuple{"T1", "0_0", cropNameFull, "Actual"}],
+		nil,
+		&rainfedLookup,
+		"%s_historical.asc",
+		fmt.Sprintf("rainfed_mask_%s", cropName),
+		extCol, extRow, 0, 0,
+		asciiOutFolder,
+		fmt.Sprintf("rainfed %s", cropNameFull),
+		"[t ha–1]",
+		"jet",
+		nil, nil, nil, 0.001, 0,
+		int(p.maxAllAvgYield), "", outC)
+
+	waitForNum++
+	go drawIrrigationMaps(&gridSourceLookup,
+		p.allGrids[SimKeyTuple{"T2", "GFDL-CM3_85", cropNameFull, "irrigated"}],
+		nil,
+		&irrLookup,
+		"%s_future.asc",
+		fmt.Sprintf("irr_mask_%s", cropName),
+		extCol, extRow, 0, 0,
+		asciiOutFolder,
+		fmt.Sprintf("irrigated %s", cropNameFull),
+		"[t ha–1]",
+		"jet",
+		nil, nil, nil, 0.001, 0,
+		int(p.maxAllAvgYield), "", outC)
+
+	waitForNum++
+	go drawIrrigationMaps(&gridSourceLookup,
+		p.allGrids[SimKeyTuple{"T1", "GFDL-CM3_85", cropNameFull, "Actual"}],
+		nil,
+		&rainfedLookup,
+		"%s_future.asc",
+		fmt.Sprintf("rainfed_mask_%s", cropName),
+		extCol, extRow, 0, 0,
+		asciiOutFolder,
+		fmt.Sprintf("rainfed %s", cropNameFull),
+		"[t ha–1]",
+		"jet",
+		nil, nil, nil, 0.001, 0,
+		int(p.maxAllAvgYield), "", outC)
 
 	for waitForNum > 0 {
 		progessStatus := <-outC
@@ -540,6 +603,48 @@ func (p *ProcessedData) incProgressBar(showBar bool) {
 	p.mux.Unlock()
 }
 
+func drawIrrigationMaps(gridSourceLookup *[][]int, irrSimVal, noIrrSimVal []int, irrLookup *map[GridCoord]bool, filenameFormat, filenameDescPart string, extCol, extRow, minRow, minCol int, asciiOutFolder, titleFormat, labelText string, colormap string, colorlist, cbarLabel []string, ticklist []float64, factor float64, minVal, maxVal int, minColor string, outC chan string) {
+	//simkey = treatmentNo, climateSenario, maturityGroup, comment
+	gridFileName := fmt.Sprintf(filenameFormat, filenameDescPart)
+	gridFilePath := filepath.Join(asciiOutFolder, gridFileName)
+	file := writeAGridHeader(gridFilePath, extCol, extRow)
+
+	writeIrrigatedRows(file, extRow, extCol, irrSimVal, noIrrSimVal, gridSourceLookup, irrLookup)
+
+	file.Close()
+	title := titleFormat
+	writeMetaFile(gridFilePath, title, labelText, colormap, colorlist, cbarLabel, ticklist, factor, maxVal, minVal, minColor)
+
+	outC <- filenameDescPart
+}
+
+func writeIrrigatedRows(fout Fout, extRow, extCol int, irrSimGrid, noIrrSimGrid []int, gridSourceLookup *[][]int, irrLookup *map[GridCoord]bool) {
+	for row := 0; row < extRow; row++ {
+		for col := 0; col < extCol; col++ {
+			refID := (*gridSourceLookup)[row][col]
+			if refID > 0 {
+				if _, ok := (*irrLookup)[GridCoord{row, col}]; ok {
+					if irrSimGrid != nil {
+						fout.Write(strconv.Itoa(irrSimGrid[refID-1]))
+					} else {
+						fout.Write("1")
+					}
+				} else {
+					if noIrrSimGrid != nil {
+						fout.Write(strconv.Itoa(noIrrSimGrid[refID-1]))
+					} else {
+						fout.Write("0")
+					}
+				}
+				fout.Write(" ")
+			} else {
+				fout.Write("-9999 ")
+			}
+		}
+		fout.Write("\n")
+	}
+}
+
 func drawDateMaps(gridSourceLookup [][]int, grids map[SimKeyTuple][]int, filenameFormat string, extCol, extRow int, asciiOutFolder, titleFormat, labelText string, showBar bool, colormap string, cbarLabel []string, ticklist []float64, factor float64, minVal, maxVal int, progessStatus string, outC chan string) {
 
 	var currentInput int
@@ -678,4 +783,50 @@ func writeMetaFile(gridFilePath, title, labeltext, colormap string, colorlist []
 	if len(minColor) > 0 {
 		file.WriteString(fmt.Sprintf("minColor: %s\n", minColor))
 	}
+}
+func getMaskGridLookup(gridsource string) map[GridCoord]bool {
+	lookup := make(map[GridCoord]bool)
+
+	sourcefile, err := os.Open(gridsource)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer sourcefile.Close()
+	firstLine := true
+	colID := -1
+	rowID := -1
+	irrID := -1
+	scanner := bufio.NewScanner(sourcefile)
+	for scanner.Scan() {
+		line := scanner.Text()
+		tokens := strings.Split(line, ",")
+		if firstLine {
+			firstLine = false
+			// Column,Row,latitude,longitude,irrigation
+			for index, token := range tokens {
+				if token == "Column" {
+					colID = index
+				}
+				if token == "Row" {
+					rowID = index
+				}
+				if token == "irrigation" {
+					irrID = index
+				}
+			}
+		} else {
+			col, _ := strconv.ParseInt(tokens[colID], 10, 64)
+			row, _ := strconv.ParseInt(tokens[rowID], 10, 64)
+			irr, _ := strconv.ParseInt(tokens[irrID], 10, 64)
+			if irr > 0 {
+				lookup[GridCoord{int(row), int(col)}] = true
+			}
+		}
+	}
+	return lookup
+}
+
+func isIrrigated(row, col int, lookup *map[GridCoord]bool) bool {
+	_, ok := (*lookup)[GridCoord{row, col}]
+	return ok
 }
