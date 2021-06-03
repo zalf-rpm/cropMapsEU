@@ -23,6 +23,6 @@ singularity run ~/singularity/other/golang_1.14.4.sif go get github.com/cheggaaa
     go get gonum.org/v1/gonum/stat && \
     go build -v -o DataToAscii
 
-./DataToAscii -path Cluster -source /beegfs/rpm/projects/monica/out/sschulz_2274_2021-28-May_131548 -project /beegfs/rpm/projects/monica/project/soybeanEU -climate /beegfs/common/data/climate/macsur_european_climate_scenarios_v3/testing/corrected -out .
+./DataToAscii -path Cluster -source /beegfs/rpm/projects/monica/out/sschulz_2274_2021-28-May_131548 -project /beegfs/rpm/projects/monica/project/soybeanEU -out .
 
 
