@@ -18,6 +18,18 @@ cd $IMAGE_DIR_GO
 singularity pull docker://golang:1.14.4
 cd ~
 fi
+
+IMAGE_DIR_PYTHON=~/singularity/python
+SINGULARITY_PYTHON_IMAGE=python3.7_2.0.sif
+IMAGE_PYTHON_PATH=${IMAGE_DIR_PYTHON}/${SINGULARITY_PYTHON_IMAGE}
+mkdir -p $IMAGE_DIR_PYTHON
+if [ ! -e ${IMAGE_PYTHON_PATH} ] ; then
+echo "File '${IMAGE_PYTHON_PATH}' not found"
+cd $IMAGE_DIR_PYTHON
+singularity pull docker://zalfrpm/python3.7:2.0
+cd ~
+fi
+
 cd ~/go/src/github.com/cropMapsEU
 singularity run ~/singularity/other/golang_1.14.4.sif go get github.com/cheggaaa/pb && \
     go get gonum.org/v1/gonum/stat && \
@@ -25,4 +37,6 @@ singularity run ~/singularity/other/golang_1.14.4.sif go get github.com/cheggaaa
 
 ./DataToAscii -path Cluster -source /beegfs/rpm/projects/monica/out/sschulz_2274_2021-28-May_131548 -project /beegfs/rpm/projects/monica/project/soybeanEU -out .
 
-
+FOLDER=$( pwd )
+IMG=~/singularity/python/python3.7_2.0.sif
+singularity run -B $FOLDER/asciigrid:/source,$FOLDER:/out $IMG python create_image_from_ascii.py path=cluster
