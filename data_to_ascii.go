@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"math"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -218,8 +217,22 @@ func main() {
 					crop:           futureSimKey.crop,
 					comment:        futureSimKey.comment,
 				}
-				p.allGrids[diffKey][refIDIndex] = p.allGrids[futureSimKey][refIDIndex] - p.allGrids[histSimKey][refIDIndex]
-				p.setMaxDiffYield(math.Abs(float64(p.allGrids[diffKey][refIDIndex])))
+				hist := p.allGrids[histSimKey][refIDIndex]
+				future := p.allGrids[futureSimKey][refIDIndex]
+				diffVal := 0
+				// catch diff by 0
+				if hist == 0 {
+					diffVal = 100
+				} else {
+					diffVal = (future - hist) * 100 / hist
+				}
+				// cap at +/-100%
+				if diffVal > 100 {
+					diffVal = 101
+				}
+				p.allGrids[diffKey][refIDIndex] = diffVal
+				//p.setMaxDiffYield(math.Abs(float64(p.allGrids[diffKey][refIDIndex])))
+				p.setMaxDiffYield(101)
 			}
 
 			p.incProgressBar(showBar)
