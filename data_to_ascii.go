@@ -222,7 +222,9 @@ func main() {
 				diffVal := 0
 				// catch diff by 0
 				if hist == 0 {
-					diffVal = 100
+					if future > 0 {
+						diffVal = 100
+					}
 				} else {
 					diffVal = (future - hist) * 100 / hist
 				}
@@ -314,36 +316,6 @@ func main() {
 
 	waitForNum++
 	go drawIrrigationMaps(&gridSourceLookup,
-		p.allGrids[SimKeyTuple{"T2", "GFDL-CM3_85", cropNameFull, "irrigated"}],
-		nil,
-		&irrLookup,
-		"%s_GFDL-CM3_85.asc",
-		fmt.Sprintf("irr_mask_%s", cropName),
-		extCol, extRow, 0, 0,
-		asciiOutFolder,
-		fmt.Sprintf("irrigated %s", cropNameFull),
-		"[t ha–1]",
-		"jet",
-		nil, nil, nil, 0.001, 0,
-		int(p.maxAllAvgYield), "", outC)
-
-	waitForNum++
-	go drawIrrigationMaps(&gridSourceLookup,
-		p.allGrids[SimKeyTuple{"T1", "GFDL-CM3_85", cropNameFull, "Actual"}],
-		nil,
-		&rainfedLookup,
-		"%s_GFDL-CM3_85.asc",
-		fmt.Sprintf("rainfed_mask_%s", cropName),
-		extCol, extRow, 0, 0,
-		asciiOutFolder,
-		fmt.Sprintf("rainfed %s", cropNameFull),
-		"[t ha–1]",
-		"jet",
-		nil, nil, nil, 0.001, 0,
-		int(p.maxAllAvgYield), "", outC)
-
-	waitForNum++
-	go drawIrrigationMaps(&gridSourceLookup,
 		p.allGrids[SimKeyTuple{"T2", "future", cropNameFull, "irrigated"}],
 		nil,
 		&irrLookup,
@@ -382,7 +354,7 @@ func main() {
 		extCol, extRow, 0, 0,
 		asciiOutFolder,
 		fmt.Sprintf("irrigated %s", cropNameFull),
-		"[t ha–1]",
+		"[% of hist. yield -100 to +100% or higher]",
 		"coolwarm",
 		nil, nil, nil, 1.0, int(p.maxDiffYield*(-1)),
 		int(p.maxDiffYield), "", outC)
