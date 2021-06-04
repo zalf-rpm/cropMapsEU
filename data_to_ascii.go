@@ -233,8 +233,6 @@ func main() {
 					diffVal = 101
 				}
 				p.allGrids[diffKey][refIDIndex] = diffVal
-				//p.setMaxDiffYield(math.Abs(float64(p.allGrids[diffKey][refIDIndex])))
-				p.setMaxDiffYield(101)
 			}
 
 			p.incProgressBar(showBar)
@@ -356,8 +354,8 @@ func main() {
 		fmt.Sprintf("irrigated %s", cropNameFull),
 		"[% of hist. yield -100 to +100% or higher]",
 		"coolwarm",
-		nil, nil, nil, 1.0, int(p.maxDiffYield*(-1)),
-		int(p.maxDiffYield), "", outC)
+		nil, nil, nil, 1.0, -101,
+		101, "", outC)
 
 	waitForNum++
 	go drawIrrigationMaps(&gridSourceLookup,
@@ -371,8 +369,8 @@ func main() {
 		fmt.Sprintf("rainfed %s", cropNameFull),
 		"[% of hist. yield -100 to +100% or higher]",
 		"coolwarm",
-		nil, nil, nil, 1.0, int(p.maxDiffYield*(-1)),
-		int(p.maxDiffYield), "", outC)
+		nil, nil, nil, 1.0, -101,
+		101, "", outC)
 
 	for waitForNum > 0 {
 		progessStatus := <-outC
@@ -416,7 +414,6 @@ type SimDataIndex struct {
 type ProcessedData struct {
 	maxAllAvgYield       float64
 	maxSdtDeviation      float64
-	maxDiffYield         float64
 	allGrids             map[SimKeyTuple][]int
 	StdDevAvgGrids       map[SimKeyTuple][]int
 	outputGridsGenerated bool
@@ -475,14 +472,6 @@ func (p *ProcessedData) setMaxSdtDeviation(stdDeviation float64) {
 	p.mux.Lock()
 	if stdDeviation > p.maxSdtDeviation {
 		p.maxSdtDeviation = stdDeviation
-	}
-	p.mux.Unlock()
-}
-
-func (p *ProcessedData) setMaxDiffYield(pixelValue float64) {
-	p.mux.Lock()
-	if pixelValue > p.maxAllAvgYield {
-		p.maxDiffYield = pixelValue
 	}
 	p.mux.Unlock()
 }
