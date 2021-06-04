@@ -378,7 +378,7 @@ func main() {
 		asciiOutFolder,
 		fmt.Sprintf("irrigated %s", cropNameFull),
 		"[t ha–1]",
-		"PiYG",
+		"coolwarm",
 		nil, nil, nil, 0.001, int(p.maxDiffYield*(-1)),
 		int(p.maxDiffYield), "", outC)
 
@@ -393,7 +393,7 @@ func main() {
 		asciiOutFolder,
 		fmt.Sprintf("rainfed %s", cropNameFull),
 		"[t ha–1]",
-		"PiYG",
+		"coolwarm",
 		nil, nil, nil, 0.001, int(p.maxDiffYield*(-1)),
 		int(p.maxDiffYield), "", outC)
 
