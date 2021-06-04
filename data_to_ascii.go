@@ -244,20 +244,12 @@ func main() {
 			for currRuns >= maxRuns {
 				<-outChan
 				currRuns--
-				// select {
-				// case <-outChan:
-				// 	currRuns--
-				// }
 			}
 		}
 	}
 	for currRuns > 0 {
 		<-outChan
 		currRuns--
-		// select {
-		// case <-outChan:
-		// 	currRuns--
-		// }
 	}
 
 	outC := make(chan string)
@@ -392,7 +384,7 @@ func main() {
 		fmt.Sprintf("irrigated %s", cropNameFull),
 		"[t ha–1]",
 		"coolwarm",
-		nil, nil, nil, 0.001, int(p.maxDiffYield*(-1)),
+		nil, nil, nil, 1.0, int(p.maxDiffYield*(-1)),
 		int(p.maxDiffYield), "", outC)
 
 	waitForNum++
@@ -405,20 +397,15 @@ func main() {
 		extCol, extRow, 0, 0,
 		asciiOutFolder,
 		fmt.Sprintf("rainfed %s", cropNameFull),
-		"[t ha–1]",
+		"[% of hist. yield -100 to +100% or higher]",
 		"coolwarm",
-		nil, nil, nil, 0.001, int(p.maxDiffYield*(-1)),
+		nil, nil, nil, 1.0, int(p.maxDiffYield*(-1)),
 		int(p.maxDiffYield), "", outC)
 
 	for waitForNum > 0 {
 		progessStatus := <-outC
 		waitForNum--
 		fmt.Println(progessStatus)
-		// select {
-		// case progessStatus := <-outC:
-		// 	waitForNum--
-		// 	fmt.Println(progessStatus)
-		// }
 	}
 
 }
