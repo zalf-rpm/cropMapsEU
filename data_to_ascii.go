@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -121,6 +122,7 @@ func main() {
 	p.maxSdtDeviation = 0.0
 	p.allGrids = make(map[SimKeyTuple][]int)
 	p.StdDevAvgGrids = make(map[SimKeyTuple][]int)
+	p.allYearGrids = make(map[SimKeyTuple][][]int)
 	p.outputGridsGenerated = false
 	p.currentInput = 0
 	p.progress = progress(numInput, "input files")
@@ -192,6 +194,19 @@ func main() {
 				p.allGrids[simKey][refIDIndex] = int(pixelValue)
 				p.StdDevAvgGrids[simKey][refIDIndex] = int(stdDeviation)
 
+				// get yearly data
+				minYear := 0
+				for i, year := range dateYearOrder[simKey] {
+					if i == 0 || year < minYear {
+						minYear = year
+					}
+				}
+				for i, year := range dateYearOrder[simKey] {
+					idx := year - minYear
+					yield := simulations[simKey][i]
+					p.allYearGrids[simKey][idx][refIDIndex] = int(yield)
+				}
+
 				if simKey.climateSenario != "0_0" {
 					futureSimKey := SimKeyTuple{
 						treatNo:        simKey.treatNo,
@@ -201,10 +216,18 @@ func main() {
 					}
 					counter[futureSimKey]++
 					p.allGrids[futureSimKey][refIDIndex] = p.allGrids[futureSimKey][refIDIndex] + int(pixelValue)
+
+					for idx := range p.allYearGrids[simKey] {
+						p.allYearGrids[futureSimKey][idx][refIDIndex] = p.allYearGrids[futureSimKey][idx][refIDIndex] + p.allYearGrids[simKey][idx][refIDIndex]
+					}
 				}
+
 			}
 			for futureSimKey := range counter {
 				p.allGrids[futureSimKey][refIDIndex] = p.allGrids[futureSimKey][refIDIndex] / counter[futureSimKey]
+				for idx := range p.allYearGrids[futureSimKey] {
+					p.allYearGrids[futureSimKey][idx][refIDIndex] = p.allYearGrids[futureSimKey][idx][refIDIndex] / counter[futureSimKey]
+				}
 				histSimKey := SimKeyTuple{
 					treatNo:        futureSimKey.treatNo,
 					climateSenario: "0_0",
@@ -217,22 +240,33 @@ func main() {
 					crop:           futureSimKey.crop,
 					comment:        futureSimKey.comment,
 				}
+
+				calcDiffValue := func(hist, future int) int {
+					diffVal := 0
+					// catch diff by 0
+					if hist == 0 {
+						if future > 0 {
+							diffVal = 100
+						}
+					} else {
+						diffVal = (future - hist) * 100 / hist
+					}
+					// cap at +/-100%
+					if diffVal > 100 {
+						diffVal = 101
+					}
+					return diffVal
+				}
+
+				for idx := range p.allYearGrids[diffKey] {
+					hist := p.allYearGrids[histSimKey][idx][refIDIndex]
+					future := p.allYearGrids[futureSimKey][idx][refIDIndex]
+					p.allYearGrids[diffKey][idx][refIDIndex] = calcDiffValue(hist, future)
+				}
+
 				hist := p.allGrids[histSimKey][refIDIndex]
 				future := p.allGrids[futureSimKey][refIDIndex]
-				diffVal := 0
-				// catch diff by 0
-				if hist == 0 {
-					if future > 0 {
-						diffVal = 100
-					}
-				} else {
-					diffVal = (future - hist) * 100 / hist
-				}
-				// cap at +/-100%
-				if diffVal > 100 {
-					diffVal = 101
-				}
-				p.allGrids[diffKey][refIDIndex] = diffVal
+				p.allGrids[diffKey][refIDIndex] = calcDiffValue(hist, future)
 			}
 
 			p.incProgressBar(showBar)
@@ -295,7 +329,7 @@ func main() {
 		"[t ha–1]",
 		"jet",
 		nil, nil, nil, 0.001, 0,
-		int(p.maxAllAvgYield), "", outC)
+		int(p.maxAllAvgYield), "grey", outC)
 
 	waitForNum++
 	go drawIrrigationMaps(&gridSourceLookup,
@@ -310,7 +344,7 @@ func main() {
 		"[t ha–1]",
 		"jet",
 		nil, nil, nil, 0.001, 0,
-		int(p.maxAllAvgYield), "", outC)
+		int(p.maxAllAvgYield), "grey", outC)
 
 	waitForNum++
 	go drawIrrigationMaps(&gridSourceLookup,
@@ -325,7 +359,7 @@ func main() {
 		"[t ha–1]",
 		"jet",
 		nil, nil, nil, 0.001, 0,
-		int(p.maxAllAvgYield), "", outC)
+		int(p.maxAllAvgYield), "grey", outC)
 
 	waitForNum++
 	go drawIrrigationMaps(&gridSourceLookup,
@@ -340,7 +374,7 @@ func main() {
 		"[t ha–1]",
 		"jet",
 		nil, nil, nil, 0.001, 0,
-		int(p.maxAllAvgYield), "", outC)
+		int(p.maxAllAvgYield), "grey", outC)
 
 	waitForNum++
 	go drawIrrigationMaps(&gridSourceLookup,
@@ -353,9 +387,9 @@ func main() {
 		asciiOutFolder,
 		fmt.Sprintf("irrigated %s", cropNameFull),
 		"[% of hist. yield -100 to +100% or higher]",
-		"coolwarm",
+		"RdBu",
 		nil, nil, nil, 1.0, -101,
-		101, "", outC)
+		101, "grey", outC)
 
 	waitForNum++
 	go drawIrrigationMaps(&gridSourceLookup,
@@ -368,9 +402,102 @@ func main() {
 		asciiOutFolder,
 		fmt.Sprintf("rainfed %s", cropNameFull),
 		"[% of hist. yield -100 to +100% or higher]",
-		"coolwarm",
+		"RdBu",
 		nil, nil, nil, 1.0, -101,
-		101, "", outC)
+		101, "grey", outC)
+
+	for i := 0; i < 30; i++ {
+		waitForNum++
+		go drawIrrigationMaps(&gridSourceLookup,
+			p.allYearGrids[SimKeyTuple{"T2", "0_0", cropNameFull, "irrigated"}][i],
+			nil,
+			&irrLookup,
+			"%s_historical.asc",
+			fmt.Sprintf("irr_mask_%s_%d", cropName, i),
+			extCol, extRow, 0, 0,
+			path.Join(asciiOutFolder, "years"),
+			fmt.Sprintf("hist. irrigated %s %d", cropNameFull, i),
+			"[t ha–1]",
+			"jet",
+			nil, nil, nil, 0.001, 0,
+			int(p.maxAllAvgYield), "grey", outC)
+
+		waitForNum++
+		go drawIrrigationMaps(&gridSourceLookup,
+			p.allYearGrids[SimKeyTuple{"T1", "0_0", cropNameFull, "Actual"}][i],
+			nil,
+			&rainfedLookup,
+			"%s_historical.asc",
+			fmt.Sprintf("rainfed_mask_%s_%d", cropName, i),
+			extCol, extRow, 0, 0,
+			path.Join(asciiOutFolder, "years"),
+			fmt.Sprintf("hist. rainfed %s %d", cropNameFull, i),
+			"[t ha–1]",
+			"jet",
+			nil, nil, nil, 0.001, 0,
+			int(p.maxAllAvgYield), "grey", outC)
+
+		waitForNum++
+		go drawIrrigationMaps(&gridSourceLookup,
+			p.allYearGrids[SimKeyTuple{"T2", "future", cropNameFull, "irrigated"}][i],
+			nil,
+			&irrLookup,
+			"%s_future.asc",
+			fmt.Sprintf("irr_mask_%s_%d", cropName, i),
+			extCol, extRow, 0, 0,
+			path.Join(asciiOutFolder, "years"),
+			fmt.Sprintf("future irrigated %s %d", cropNameFull, i),
+			"[t ha–1]",
+			"jet",
+			nil, nil, nil, 0.001, 0,
+			int(p.maxAllAvgYield), "grey", outC)
+
+		waitForNum++
+		go drawIrrigationMaps(&gridSourceLookup,
+			p.allYearGrids[SimKeyTuple{"T1", "future", cropNameFull, "Actual"}][i],
+			nil,
+			&rainfedLookup,
+			"%s_future.asc",
+			fmt.Sprintf("rainfed_mask_%s_%d", cropName, i),
+			extCol, extRow, 0, 0,
+			path.Join(asciiOutFolder, "years"),
+			fmt.Sprintf("future rainfed %s %d", cropNameFull, i),
+			"[t ha–1]",
+			"jet",
+			nil, nil, nil, 0.001, 0,
+			int(p.maxAllAvgYield), "grey", outC)
+
+		waitForNum++
+		go drawIrrigationMaps(&gridSourceLookup,
+			p.allYearGrids[SimKeyTuple{"T2", "diff", cropNameFull, "irrigated"}][i],
+			nil,
+			&irrLookup,
+			"%s_diff.asc",
+			fmt.Sprintf("irr_mask_%s_%d", cropName, i),
+			extCol, extRow, 0, 0,
+			path.Join(asciiOutFolder, "years"),
+			fmt.Sprintf("irrigated %s %d", cropNameFull, i),
+			"[% of hist. yield -100 to +100% or higher]",
+			"RdBu",
+			nil, nil, nil, 1.0, -101,
+			101, "grey", outC)
+
+		waitForNum++
+		go drawIrrigationMaps(&gridSourceLookup,
+			p.allYearGrids[SimKeyTuple{"T1", "diff", cropNameFull, "Actual"}][i],
+			nil,
+			&rainfedLookup,
+			"%s_diff.asc",
+			fmt.Sprintf("rainfed_mask_%s_%d", cropName, i),
+			extCol, extRow, 0, 0,
+			path.Join(asciiOutFolder, "years"),
+			fmt.Sprintf("rainfed %s %d", cropNameFull, i),
+			"[% of hist. yield -100 to +100% or higher]",
+			"RdBu",
+			nil, nil, nil, 1.0, -101,
+			101, "grey", outC)
+
+	}
 
 	for waitForNum > 0 {
 		progessStatus := <-outC
@@ -416,6 +543,7 @@ type ProcessedData struct {
 	maxSdtDeviation      float64
 	allGrids             map[SimKeyTuple][]int
 	StdDevAvgGrids       map[SimKeyTuple][]int
+	allYearGrids         map[SimKeyTuple][][]int
 	outputGridsGenerated bool
 	mux                  sync.Mutex
 	currentInput         int
@@ -433,6 +561,15 @@ func (p *ProcessedData) setOutputGridsGenerated(simulations map[SimKeyTuple][]fl
 			p.allGrids[simKey] = newGridLookup(maxRefNo, 0)
 			p.StdDevAvgGrids[simKey] = newGridLookup(maxRefNo, 0)
 
+			createGridsPerYear := func() [][]int {
+				years := make([][]int, 0, 30)
+				for year := 0; year < 30; year++ {
+					years = append(years, newGridLookup(maxRefNo, 0))
+				}
+				return years
+			}
+			p.allYearGrids[simKey] = createGridsPerYear()
+
 			if simKey.climateSenario != "0_0" {
 				futureSimKey := SimKeyTuple{
 					treatNo:        simKey.treatNo,
@@ -442,6 +579,7 @@ func (p *ProcessedData) setOutputGridsGenerated(simulations map[SimKeyTuple][]fl
 				}
 				if _, ok := p.allGrids[futureSimKey]; !ok {
 					p.allGrids[futureSimKey] = newGridLookup(maxRefNo, 0)
+					p.allYearGrids[futureSimKey] = createGridsPerYear()
 				}
 			} else {
 				diffKey := SimKeyTuple{
@@ -452,6 +590,7 @@ func (p *ProcessedData) setOutputGridsGenerated(simulations map[SimKeyTuple][]fl
 				}
 				if _, ok := p.allGrids[diffKey]; !ok {
 					p.allGrids[diffKey] = newGridLookup(maxRefNo, 0)
+					p.allYearGrids[diffKey] = createGridsPerYear()
 				}
 			}
 
@@ -692,7 +831,7 @@ func drawIrrigationMaps(gridSourceLookup *[][]int, irrSimVal, noIrrSimVal []int,
 	gridFilePath := filepath.Join(asciiOutFolder, gridFileName)
 	file := writeAGridHeader(gridFilePath, extCol, extRow)
 
-	writeIrrigatedRows(file, extRow, extCol, irrSimVal, noIrrSimVal, gridSourceLookup, irrLookup)
+	writeIrrigatedRows(file, extRow, extCol, minVal, maxVal, irrSimVal, noIrrSimVal, gridSourceLookup, irrLookup)
 
 	file.Close()
 	title := titleFormat
@@ -701,7 +840,9 @@ func drawIrrigationMaps(gridSourceLookup *[][]int, irrSimVal, noIrrSimVal []int,
 	outC <- filenameDescPart
 }
 
-func writeIrrigatedRows(fout Fout, extRow, extCol int, irrSimGrid, noIrrSimGrid []int, gridSourceLookup *[][]int, irrLookup *map[GridCoord]bool) {
+func writeIrrigatedRows(fout Fout, extRow, extCol, min, max int, irrSimGrid, noIrrSimGrid []int, gridSourceLookup *[][]int, irrLookup *map[GridCoord]bool) {
+	strMin := strconv.Itoa(min)
+	strMax := strconv.Itoa(max)
 	for row := 0; row < extRow; row++ {
 		for col := 0; col < extCol; col++ {
 			refID := (*gridSourceLookup)[row][col]
@@ -710,13 +851,13 @@ func writeIrrigatedRows(fout Fout, extRow, extCol int, irrSimGrid, noIrrSimGrid 
 					if irrSimGrid != nil {
 						fout.Write(strconv.Itoa(irrSimGrid[refID-1]))
 					} else {
-						fout.Write("1")
+						fout.Write(strMax)
 					}
 				} else {
 					if noIrrSimGrid != nil {
 						fout.Write(strconv.Itoa(noIrrSimGrid[refID-1]))
 					} else {
-						fout.Write("0")
+						fout.Write(strMin)
 					}
 				}
 				fout.Write(" ")
