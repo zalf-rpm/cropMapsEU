@@ -22,10 +22,12 @@ import gzip
 from ruamel_yaml import YAML
 from dataclasses import dataclass
 import typing
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 
 PATHS = {
     "local": {
-        "sourcepath" : "./asciigrids_debug/",
+        "sourcepath" : "./asciigrids_test/",
         "outputpath" : ".",
         "png-out" : "png_debug/" , # path to png images
         "pdf-out" : "pdf-out_debug/" , # path to pdf package
@@ -352,6 +354,7 @@ def createImgFromMeta(ascii_path, meta_path, out_path, pdf=None) :
     maxLoaded = False
     minValue = ascii_nodata
     minLoaded = False
+    border = False
 
     if os.path.isfile(meta_path)  :
         with open(meta_path, 'rt', encoding='utf-8') as meta:
@@ -386,6 +389,8 @@ def createImgFromMeta(ascii_path, meta_path, out_path, pdf=None) :
                     ticklist = list()
                     for i in doc :
                         ticklist.append(float(i))
+                elif item == "border" :
+                    border = bool(doc)
 
 
     # Read in the ascii data array
@@ -402,15 +407,24 @@ def createImgFromMeta(ascii_path, meta_path, out_path, pdf=None) :
     ascii_data_array *= factor
     maxValue *= factor
     minValue *= factor
+    if border :
+        ascii_data_array = np.flip(ascii_data_array, 0)
 
     image_extent = [
         ascii_xll, ascii_xll + ascci_cols * ascii_cs,
         ascii_yll, ascii_yll + ascii_rows * ascii_cs]
     
     # Plot data array
-    fig, ax = plt.subplots()
+    projection = None
+    if border :
+        projection = ccrs.epsg("3035")
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection=projection)
+
     ax.set_title(title)
-    
+    if border :
+        ax.set_extent(image_extent, crs=projection)
+
     # set min color if given
     if len(minColor) > 0 and not cMap:
         newColorMap = matplotlib.cm.get_cmap(colormap, 256)
@@ -460,6 +474,10 @@ def createImgFromMeta(ascii_path, meta_path, out_path, pdf=None) :
         cbar.ax.set_yticklabels(cbarLabel) 
 
     ax.grid(True, alpha=0.5)
+    if border :
+        ax.add_feature(cfeature.COASTLINE.with_scale('10m'))
+        ax.add_feature(cfeature.BORDERS.with_scale('10m'))
+
     # save image and pdf 
     makeDir(out_path)
     if pdf :
@@ -541,6 +559,7 @@ class Meta:
     yTitle: float
     xTitle: float
     removeEmptyColumns: bool
+    border: bool
 
 def readMeta(meta_path, ascii_nodata, showCBar) :
     title="" 
@@ -578,6 +597,7 @@ def readMeta(meta_path, ascii_nodata, showCBar) :
     yTitle = 1
     xTitle = 1
     removeEmptyColumns = False
+    border = False
 
     with open(meta_path, 'rt', encoding='utf-8') as meta:
        # documents = yaml.load(meta, Loader=yaml.FullLoader)
@@ -643,6 +663,8 @@ def readMeta(meta_path, ascii_nodata, showCBar) :
                 YaxisMappingFormat = doc
             elif item == "yTitle" :
                 yTitle = float(doc) 
+            elif item == "border" :
+                border = bool(doc)
             elif item == "xTitle" :
                 xTitle = float(doc)
             elif item == "removeEmptyColumns" :
@@ -669,7 +691,7 @@ def readMeta(meta_path, ascii_nodata, showCBar) :
                 YaxisMappingFile,YaxisMappingRefColumn,YaxisMappingTarColumn,YaxisMappingFormat,
                 XaxisMappingFile,XaxisMappingRefColumn,XaxisMappingTarColumn,XaxisMappingFormat,
                 densityReduction, densityFactor, 
-                yTitle,xTitle,removeEmptyColumns)
+                yTitle,xTitle,removeEmptyColumns, border)
 
 
 def createSubPlot(image, out_path, pdf=None) :
@@ -765,8 +787,11 @@ def createSubPlot(image, out_path, pdf=None) :
                 nplotCols = numCol
                 
     # Plot data array
-
-    fig, axs = plt.subplots(nrows=nplotRows, ncols=nplotCols, squeeze=False, sharex=True, sharey=True, figsize=image.size)
+    projection = None
+    if meta[0].border :
+        projection = ccrs.epsg("3035")
+    fig, axs = plt.subplots(nrows=nplotRows, ncols=nplotCols, squeeze=False, sharex=True, sharey=True, figsize=image.size, subplot_kw={'projection': projection})
+    
     # defaults
     # image.adjBottom = 0.15
     # image.adjTop = 0.95
@@ -838,7 +863,6 @@ def createSubPlot(image, out_path, pdf=None) :
 def plotLayer(fig, ax, asciiHeader, meta, subtitle, onlyOnce, fontsize = 10, axlabelpad = None, axtickpad = None) :
     # Read in the ascii data array
     ascii_data_array = np.loadtxt(asciiHeader.ascii_path, dtype=np.float, skiprows=6)
-    
     colorM = None
     # set min color if given
     if len(meta.minColor) > 0 and not meta.cMap:
@@ -887,9 +911,15 @@ def plotLayer(fig, ax, asciiHeader, meta, subtitle, onlyOnce, fontsize = 10, axl
         image_extent = [
                 asciiHeader.ascii_xll, asciiHeader.ascii_xll + rowcol[1] * asciiHeader.ascii_cs,
                 asciiHeader.ascii_yll, asciiHeader.ascii_yll + asciiHeader.ascii_rows * asciiHeader.ascii_cs] 
-
         # data is stored as an integer but scaled by a factor
         ascii_data_array *= meta.factor
+        projection = None
+        if meta.border :
+            ascii_data_array = np.flip(ascii_data_array, 0)
+            projection = ccrs.epsg("3035")
+            ax.set_extent(image_extent, crs=projection)
+
+            #ax = fig.add_subplot(1, 1, 1, projection=projection)
 
         if meta.minLoaded and meta.maxLoaded:
             img_plot = ax.imshow(ascii_data_array, cmap=colorM, extent=image_extent, interpolation='none', vmin=meta.minValue, vmax=meta.maxValue)
@@ -900,6 +930,9 @@ def plotLayer(fig, ax, asciiHeader, meta, subtitle, onlyOnce, fontsize = 10, axl
         else :
             img_plot = ax.imshow(ascii_data_array, cmap=colorM, extent=image_extent, interpolation='none')
 
+        if meta.border :
+            ax.add_feature(cfeature.COASTLINE.with_scale('10m'))
+            ax.add_feature(cfeature.BORDERS.with_scale('10m'))
         if meta.showbars :
             axins = inset_axes(ax,
             width="5%",  # width = 5% of parent_bbox width

@@ -900,10 +900,11 @@ func drawDateMaps(gridSourceLookup [][]int, grids map[SimKeyTuple][]int, filenam
 }
 
 func writeAGridHeader(name string, nCol, nRow int) (fout Fout) {
-	cornerX := 0.0
-	cornery := 0.0
+	cornerX := 1500000.0
+	cornery := 5500000.0 - (float64(nRow) * 1000.0)
 	novalue := -9999
-	cellsize := 1.0
+	cellsize := 1000.0
+
 	// create an ascii file, which contains the header
 	makeDir(name)
 	file, err := os.OpenFile(name+".gz", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
@@ -1007,6 +1008,7 @@ func writeMetaFile(gridFilePath, title, labeltext, colormap string, colorlist []
 	if len(minColor) > 0 {
 		file.WriteString(fmt.Sprintf("minColor: %s\n", minColor))
 	}
+	file.WriteString("border: True\n")
 }
 func getMaskGridLookup(gridsource string) map[GridCoord]bool {
 	lookup := make(map[GridCoord]bool)
