@@ -11,17 +11,21 @@ def build() :
 
     gridFile = "./stu_eu_layer_grid.csv"
     pathToGrids = [
-            "./asciigrids_debug/Irrigated_Maize_GrowingArea_EU.asc",
-            "./asciigrids_debug/Irrigated_Wheat_GrowingArea_EU.asc",
-            "./asciigrids_debug/Rainfed_Maize_GrowingArea_EU.asc",
-            "./asciigrids_debug/Rainfed_Wheat_GrowingArea_EU.asc"
+            "./asciigrids_debug/Irrigated_Rapeseed_GrowingArea_EU.asc",
+            "./asciigrids_debug/Rainfed_Rapeseed_GrowingArea_EU.asc",
+            # "./asciigrids_debug/Irrigated_Maize_GrowingArea_EU.asc",
+            # "./asciigrids_debug/Irrigated_Wheat_GrowingArea_EU.asc",
+            # "./asciigrids_debug/Rainfed_Maize_GrowingArea_EU.asc",
+            # "./asciigrids_debug/Rainfed_Wheat_GrowingArea_EU.asc"
     ]
 
     outFiles = [
-            "./stu_eu_layer_grid_Irrigated_Maize_GrowingArea_EU.csv",
-            "./stu_eu_layer_grid_Irrigated_Wheat_GrowingArea_EU.csv",
-            "./stu_eu_layer_grid_Rainfed_Maize_GrowingArea_EU.csv",
-            "./stu_eu_layer_grid_Rainfed_Wheat_GrowingArea_EU.csv"
+            "./stu_eu_layer_grid_Irrigated_Rapeseed_GrowingArea_EU.csv",
+            "./stu_eu_layer_grid_Rainfed_Rapeseed_GrowingArea_EU.csv",
+            # "./stu_eu_layer_grid_Irrigated_Maize_GrowingArea_EU.csv",
+            # "./stu_eu_layer_grid_Irrigated_Wheat_GrowingArea_EU.csv",
+            # "./stu_eu_layer_grid_Rainfed_Maize_GrowingArea_EU.csv",
+            # "./stu_eu_layer_grid_Rainfed_Wheat_GrowingArea_EU.csv"
     ]
 
     # create a lat/lon map, assigning each Datapoint a lat/lon value
