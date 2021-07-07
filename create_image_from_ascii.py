@@ -55,7 +55,7 @@ def build() :
     pathId = USER
     sourceFolder = ""
     outputFolder = ""
-    generatePDF = True
+    generatePDF = False
     if len(sys.argv) > 1 and __name__ == "__main__":
         for arg in sys.argv[1:]:
             k, v = arg.split("=")
@@ -355,6 +355,7 @@ def createImgFromMeta(ascii_path, meta_path, out_path, pdf=None) :
     minValue = ascii_nodata
     minLoaded = False
     border = False
+    showbars = True
 
     if os.path.isfile(meta_path)  :
         with open(meta_path, 'rt', encoding='utf-8') as meta:
@@ -391,6 +392,8 @@ def createImgFromMeta(ascii_path, meta_path, out_path, pdf=None) :
                         ticklist.append(float(i))
                 elif item == "border" :
                     border = bool(doc)
+                elif item == "showbar" :
+                    showbars = bool(doc)
 
 
     # Read in the ascii data array
@@ -463,26 +466,28 @@ def createImgFromMeta(ascii_path, meta_path, out_path, pdf=None) :
         else :
             img_plot = ax.imshow(ascii_data_array, cmap=colormap, extent=image_extent, interpolation='none')
 
-    if ticklist :
-        # Place a colorbar next to the map
-        cbar = plt.colorbar(img_plot, ticks=ticklist, orientation='vertical', shrink=0.5, aspect=14)
-    else :
-        # Place a colorbar next to the map
-        cbar = plt.colorbar(img_plot, orientation='vertical', shrink=0.5, aspect=14)
-    cbar.set_label(label)
-    if cbarLabel :
-        cbar.ax.set_yticklabels(cbarLabel) 
+    if showbars :
+        if ticklist :
+            # Place a colorbar next to the map
+            cbar = plt.colorbar(img_plot, ticks=ticklist, orientation='vertical', shrink=0.5, aspect=14)
+        else :
+            # Place a colorbar next to the map
+            cbar = plt.colorbar(img_plot, orientation='vertical', shrink=0.5, aspect=14)
+        cbar.set_label(label)
+        if cbarLabel :
+            cbar.ax.set_yticklabels(cbarLabel) 
 
     ax.grid(True, alpha=0.5)
     if border :
-        ax.add_feature(cfeature.COASTLINE.with_scale('10m'))
-        ax.add_feature(cfeature.BORDERS.with_scale('10m'))
+        ax.add_feature(cfeature.COASTLINE.with_scale('10m'), linewidth=0.2)
+        ax.add_feature(cfeature.BORDERS.with_scale('10m'), linewidth=0.2)
+        ax.add_feature(cfeature.OCEAN.with_scale('50m'))
 
     # save image and pdf 
     makeDir(out_path)
     if pdf :
         pdf.savefig()
-    plt.savefig(out_path, dpi=150)
+    plt.savefig(out_path, dpi=300)
     plt.close(fig)
   
 
@@ -773,7 +778,7 @@ def createSubPlot(image, out_path, pdf=None) :
             lastCol = len(content.content)
             for col in content.content :
                 numCol += 1
-                showBar = not shareCBar or (numCol == lastCol) 
+                #showBar = not shareCBar or (numCol == lastCol) 
                 if type(col) is File or type(col) is Merge :
                     asciiHeader, meta, asciiHeaderInsert, metaInsert, subPosi = readContent(col)
                     asciiHeaderLs[(nplotRows, numCol)] = asciiHeader 
@@ -782,7 +787,9 @@ def createSubPlot(image, out_path, pdf=None) :
                     metaInsertLs[(nplotRows, numCol)] = metaInsert
                     subPositions[(nplotRows, numCol)] = subPosi
                     for m in metaLs[(nplotRows, numCol)] :
-                        m.showbars = showBar
+                        #m.showbars = m.showbars and showBar
+                        m.showbars = (shareCBar and numCol == lastCol) or (not shareCBar and m.showbars)
+
             if numCol > nplotCols : 
                 nplotCols = numCol
                 
@@ -857,7 +864,7 @@ def createSubPlot(image, out_path, pdf=None) :
     makeDir(out_path)
     if pdf :
         pdf.savefig(dpi=150)
-    plt.savefig(out_path, dpi=250)
+    plt.savefig(out_path, dpi=300)
     plt.close(fig)
 
 def plotLayer(fig, ax, asciiHeader, meta, subtitle, onlyOnce, fontsize = 10, axlabelpad = None, axtickpad = None) :
@@ -931,8 +938,9 @@ def plotLayer(fig, ax, asciiHeader, meta, subtitle, onlyOnce, fontsize = 10, axl
             img_plot = ax.imshow(ascii_data_array, cmap=colorM, extent=image_extent, interpolation='none')
 
         if meta.border :
-            ax.add_feature(cfeature.COASTLINE.with_scale('10m'))
-            ax.add_feature(cfeature.BORDERS.with_scale('10m'))
+            ax.add_feature(cfeature.COASTLINE.with_scale('10m'), linewidth=0.2)
+            ax.add_feature(cfeature.BORDERS.with_scale('10m'), linewidth=0.2)
+            ax.add_feature(cfeature.OCEAN.with_scale('50m'))
         if meta.showbars :
             axins = inset_axes(ax,
             width="5%",  # width = 5% of parent_bbox width
