@@ -118,6 +118,7 @@ pdf-out_debug/
 png_debug/
 asciigrids_debug/
 climate/
+asciigrids_test/
 stu_eu_layer_grid.csv
 stu_eu_layer_ref.csv
 stu_eu_layer_soils.csv
