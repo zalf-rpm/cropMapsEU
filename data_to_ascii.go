@@ -21,8 +21,7 @@ import (
 const asciiOutFilenameAvg = "avg_%s_trno%s.asc"          // crop_treatmentnumber
 const asciiOutFilenameDeviAvg = "devi_avg_%s_trno%s.asc" // crop_treatmentnumber
 
-const rainfedMask = "stu_eu_layer_grid_Rainfed_%s_GrowingArea_EU.csv"     // Crop first letter upper case
-const irrigatedMask = "stu_eu_layer_grid_Irrigated_%s_GrowingArea_EU.csv" // Crop irst letter upper case
+const rainfedMask = "stu_eu_layer_grid_Rainfed_%s_GrowingArea_EU.csv" // Crop first letter upper case
 
 // USER switch for setting
 const USER = "local"
@@ -92,12 +91,10 @@ func main() {
 	}
 
 	asciiOutFolder := filepath.Join(outputFolder, PATHS[pathID]["ascii-out"])
-	irrgigationSource := filepath.Join(projectpath, fmt.Sprintf(irrigatedMask, strings.Title(cropName)))
 	rainfedSource := filepath.Join(projectpath, fmt.Sprintf(rainfedMask, strings.Title(cropName)))
 
 	gridSource := filepath.Join(projectpath, "stu_eu_layer_grid.csv")
 	extRow, extCol, gridSourceLookup := GetGridLookup(gridSource)
-	irrLookup := getMaskGridLookup(irrgigationSource)
 	rainfedLookup := getMaskGridLookup(rainfedSource)
 
 	filelist, err := ioutil.ReadDir(sourceFolder)
@@ -257,14 +254,11 @@ func main() {
 					}
 					return diffVal
 				}
-
-				for idx := range p.allYearGrids[diffKey] {
-					hist := p.allYearGrids[histSimKey][idx][refIDIndex]
-					future := p.allYearGrids[futureSimKey][idx][refIDIndex]
-					p.allYearGrids[diffKey][idx][refIDIndex] = calcDiffValue(hist, future)
-				}
-
 				hist := p.allGrids[histSimKey][refIDIndex]
+				for idxYear := range p.allYearGrids[diffKey] {
+					future := p.allYearGrids[futureSimKey][idxYear][refIDIndex]
+					p.allYearGrids[diffKey][idxYear][refIDIndex] = calcDiffValue(hist, future)
+				}
 				future := p.allGrids[futureSimKey][refIDIndex]
 				p.allGrids[diffKey][refIDIndex] = calcDiffValue(hist, future)
 			}
@@ -318,21 +312,6 @@ func main() {
 
 	waitForNum++
 	go drawIrrigationMaps(&gridSourceLookup,
-		p.allGrids[SimKeyTuple{"T2", "0_0", cropNameFull, "irrigated"}],
-		nil,
-		&irrLookup,
-		"%s_historical.asc",
-		fmt.Sprintf("irr_mask_%s", cropName),
-		extCol, extRow, 0, 0,
-		asciiOutFolder,
-		fmt.Sprintf("hist. irrigated %s", cropNameFull),
-		"[t ha–1]",
-		"jet",
-		nil, nil, nil, 0.001, 0,
-		int(p.maxAllAvgYield), "grey", outC)
-
-	waitForNum++
-	go drawIrrigationMaps(&gridSourceLookup,
 		p.allGrids[SimKeyTuple{"T1", "0_0", cropNameFull, "Actual"}],
 		nil,
 		&rainfedLookup,
@@ -341,21 +320,6 @@ func main() {
 		extCol, extRow, 0, 0,
 		asciiOutFolder,
 		fmt.Sprintf("hist. rainfed %s", cropNameFull),
-		"[t ha–1]",
-		"jet",
-		nil, nil, nil, 0.001, 0,
-		int(p.maxAllAvgYield), "grey", outC)
-
-	waitForNum++
-	go drawIrrigationMaps(&gridSourceLookup,
-		p.allGrids[SimKeyTuple{"T2", "future", cropNameFull, "irrigated"}],
-		nil,
-		&irrLookup,
-		"%s_future.asc",
-		fmt.Sprintf("irr_mask_%s", cropName),
-		extCol, extRow, 0, 0,
-		asciiOutFolder,
-		fmt.Sprintf("future irrigated %s", cropNameFull),
 		"[t ha–1]",
 		"jet",
 		nil, nil, nil, 0.001, 0,
@@ -378,21 +342,6 @@ func main() {
 
 	waitForNum++
 	go drawIrrigationMaps(&gridSourceLookup,
-		p.allGrids[SimKeyTuple{"T2", "diff", cropNameFull, "irrigated"}],
-		nil,
-		&irrLookup,
-		"%s_diff.asc",
-		fmt.Sprintf("irr_mask_%s", cropName),
-		extCol, extRow, 0, 0,
-		asciiOutFolder,
-		fmt.Sprintf("irrigated %s", cropNameFull),
-		"[% of hist. yield -100 to +100% or higher]",
-		"RdBu",
-		nil, nil, nil, 1.0, -101,
-		101, "grey", outC)
-
-	waitForNum++
-	go drawIrrigationMaps(&gridSourceLookup,
 		p.allGrids[SimKeyTuple{"T1", "diff", cropNameFull, "Actual"}],
 		nil,
 		&rainfedLookup,
@@ -409,21 +358,6 @@ func main() {
 	for i := 0; i < 30; i++ {
 		waitForNum++
 		go drawIrrigationMaps(&gridSourceLookup,
-			p.allYearGrids[SimKeyTuple{"T2", "0_0", cropNameFull, "irrigated"}][i],
-			nil,
-			&irrLookup,
-			"%s_historical.asc",
-			fmt.Sprintf("irr_mask_%s_%d", cropName, i),
-			extCol, extRow, 0, 0,
-			path.Join(asciiOutFolder, "years"),
-			fmt.Sprintf("hist. irrigated %s %d", cropNameFull, i),
-			"[t ha–1]",
-			"jet",
-			nil, nil, nil, 0.001, 0,
-			int(p.maxAllAvgYield), "grey", outC)
-
-		waitForNum++
-		go drawIrrigationMaps(&gridSourceLookup,
 			p.allYearGrids[SimKeyTuple{"T1", "0_0", cropNameFull, "Actual"}][i],
 			nil,
 			&rainfedLookup,
@@ -432,21 +366,6 @@ func main() {
 			extCol, extRow, 0, 0,
 			path.Join(asciiOutFolder, "years"),
 			fmt.Sprintf("hist. rainfed %s %d", cropNameFull, i),
-			"[t ha–1]",
-			"jet",
-			nil, nil, nil, 0.001, 0,
-			int(p.maxAllAvgYield), "grey", outC)
-
-		waitForNum++
-		go drawIrrigationMaps(&gridSourceLookup,
-			p.allYearGrids[SimKeyTuple{"T2", "future", cropNameFull, "irrigated"}][i],
-			nil,
-			&irrLookup,
-			"%s_future.asc",
-			fmt.Sprintf("irr_mask_%s_%d", cropName, i),
-			extCol, extRow, 0, 0,
-			path.Join(asciiOutFolder, "years"),
-			fmt.Sprintf("future irrigated %s %d", cropNameFull, i),
 			"[t ha–1]",
 			"jet",
 			nil, nil, nil, 0.001, 0,
@@ -466,21 +385,6 @@ func main() {
 			"jet",
 			nil, nil, nil, 0.001, 0,
 			int(p.maxAllAvgYield), "grey", outC)
-
-		waitForNum++
-		go drawIrrigationMaps(&gridSourceLookup,
-			p.allYearGrids[SimKeyTuple{"T2", "diff", cropNameFull, "irrigated"}][i],
-			nil,
-			&irrLookup,
-			"%s_diff.asc",
-			fmt.Sprintf("irr_mask_%s_%d", cropName, i),
-			extCol, extRow, 0, 0,
-			path.Join(asciiOutFolder, "years"),
-			fmt.Sprintf("irrigated %s %d", cropNameFull, i),
-			"[% of hist. yield -100 to +100% or higher]",
-			"RdBu",
-			nil, nil, nil, 1.0, -101,
-			101, "grey", outC)
 
 		waitForNum++
 		go drawIrrigationMaps(&gridSourceLookup,
