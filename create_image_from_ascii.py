@@ -48,6 +48,7 @@ PATHS = {
 USER = "local" 
 NONEVALUE = -9999
 SETUP_FILENAME = "image-setup.yml"
+DEFAULT_DPI_PNG=300
 
 def build() :
     "main"
@@ -56,6 +57,7 @@ def build() :
     sourceFolder = ""
     outputFolder = ""
     generatePDF = False
+    png_dpi = DEFAULT_DPI_PNG
     if len(sys.argv) > 1 and __name__ == "__main__":
         for arg in sys.argv[1:]:
             k, v = arg.split("=")
@@ -65,8 +67,10 @@ def build() :
                 sourceFolder = v
             if k == "out" :
                 outputFolder = v
-            if k == generatePDF :
+            if k == "generatePDF" :
                 generatePDF = bool(v)
+            if k == "dpi" :
+                png_dpi = int(v)
             
     if not sourceFolder :
         sourceFolder = PATHS[pathId]["sourcepath"]
@@ -101,7 +105,7 @@ def build() :
                     pngfilename = imageName + ".png"
 
                     outpath = os.path.join(pngFolder, scenario, pngfilename)  
-                    createSubPlot(image, outpath, pdf=pdf)
+                    createSubPlot(image, outpath,png_dpi, pdf=pdf)
                 if generatePDF :
                     pdf.close()
             else :
@@ -119,7 +123,7 @@ def build() :
                         filepath = os.path.join(root, file)
                         metapath = os.path.join(root, metafilename)
                         out_path = os.path.join(pngFolder, scenario, pngfilename)    
-                        createImgFromMeta( filepath, metapath, out_path, pdf=pdf)
+                        createImgFromMeta( filepath, metapath, out_path, png_dpi, pdf=pdf)
                 if generatePDF :
                     pdf.close()
 
@@ -322,7 +326,7 @@ def readSetup(filename, root, files) :
     return imageList
 
 
-def createImgFromMeta(ascii_path, meta_path, out_path, pdf=None) :
+def createImgFromMeta(ascii_path, meta_path, out_path, png_dpi, pdf=None) :
 
     if ascii_path.endswith(".gz") :
            # Read in ascii header data
@@ -487,7 +491,7 @@ def createImgFromMeta(ascii_path, meta_path, out_path, pdf=None) :
     makeDir(out_path)
     if pdf :
         pdf.savefig()
-    plt.savefig(out_path, dpi=300)
+    plt.savefig(out_path, dpi=png_dpi)
     plt.close(fig)
   
 
@@ -699,7 +703,7 @@ def readMeta(meta_path, ascii_nodata, showCBar) :
                 yTitle,xTitle,removeEmptyColumns, border)
 
 
-def createSubPlot(image, out_path, pdf=None) :
+def createSubPlot(image, out_path, png_dpi, pdf=None) :
         
     nplotRows = 0
     nplotCols = 0
@@ -864,7 +868,7 @@ def createSubPlot(image, out_path, pdf=None) :
     makeDir(out_path)
     if pdf :
         pdf.savefig(dpi=150)
-    plt.savefig(out_path, dpi=300)
+    plt.savefig(out_path, dpi=png_dpi)
     plt.close(fig)
 
 def plotLayer(fig, ax, asciiHeader, meta, subtitle, onlyOnce, fontsize = 10, axlabelpad = None, axtickpad = None) :
