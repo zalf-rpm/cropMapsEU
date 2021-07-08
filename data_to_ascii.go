@@ -323,7 +323,7 @@ func main() {
 		"[t ha–1]",
 		"jet",
 		nil, nil, nil, 0.001, 0,
-		int(p.maxAllAvgYield), "grey", outC)
+		int(p.maxAllAvgYield), "lightgrey", false, outC)
 
 	waitForNum++
 	go drawIrrigationMaps(&gridSourceLookup,
@@ -338,7 +338,7 @@ func main() {
 		"[t ha–1]",
 		"jet",
 		nil, nil, nil, 0.001, 0,
-		int(p.maxAllAvgYield), "grey", outC)
+		int(p.maxAllAvgYield), "lightgrey", false, outC)
 
 	waitForNum++
 	go drawIrrigationMaps(&gridSourceLookup,
@@ -351,9 +351,9 @@ func main() {
 		asciiOutFolder,
 		fmt.Sprintf("rainfed %s", cropNameFull),
 		"[% of hist. yield -100 to +100% or higher]",
-		"RdBu",
+		"RdYlGn",
 		nil, nil, nil, 1.0, -101,
-		101, "grey", outC)
+		101, "lightgrey", false, outC)
 
 	for i := 0; i < 30; i++ {
 		waitForNum++
@@ -369,7 +369,7 @@ func main() {
 			"[t ha–1]",
 			"jet",
 			nil, nil, nil, 0.001, 0,
-			int(p.maxAllAvgYield), "grey", outC)
+			int(p.maxAllAvgYield), "lightgrey", false, outC)
 
 		waitForNum++
 		go drawIrrigationMaps(&gridSourceLookup,
@@ -384,7 +384,7 @@ func main() {
 			"[t ha–1]",
 			"jet",
 			nil, nil, nil, 0.001, 0,
-			int(p.maxAllAvgYield), "grey", outC)
+			int(p.maxAllAvgYield), "lightgrey", false, outC)
 
 		waitForNum++
 		go drawIrrigationMaps(&gridSourceLookup,
@@ -397,9 +397,9 @@ func main() {
 			path.Join(asciiOutFolder, "years"),
 			fmt.Sprintf("rainfed %s %d", cropNameFull, i),
 			"[% of hist. yield -100 to +100% or higher]",
-			"RdBu",
+			"RdYlGn",
 			nil, nil, nil, 1.0, -101,
-			101, "grey", outC)
+			101, "lightgrey", false, outC)
 
 	}
 
@@ -729,7 +729,7 @@ func (p *ProcessedData) incProgressBar(showBar bool) {
 	p.mux.Unlock()
 }
 
-func drawIrrigationMaps(gridSourceLookup *[][]int, irrSimVal, noIrrSimVal []int, irrLookup *map[GridCoord]bool, filenameFormat, filenameDescPart string, extCol, extRow, minRow, minCol int, asciiOutFolder, titleFormat, labelText string, colormap string, colorlist, cbarLabel []string, ticklist []float64, factor float64, minVal, maxVal int, minColor string, outC chan string) {
+func drawIrrigationMaps(gridSourceLookup *[][]int, irrSimVal, noIrrSimVal []int, irrLookup *map[GridCoord]bool, filenameFormat, filenameDescPart string, extCol, extRow, minRow, minCol int, asciiOutFolder, titleFormat, labelText string, colormap string, colorlist, cbarLabel []string, ticklist []float64, factor float64, minVal, maxVal int, minColor string, showbar bool, outC chan string) {
 	//simkey = treatmentNo, climateSenario, maturityGroup, comment
 	gridFileName := fmt.Sprintf(filenameFormat, filenameDescPart)
 	gridFilePath := filepath.Join(asciiOutFolder, gridFileName)
@@ -738,8 +738,9 @@ func drawIrrigationMaps(gridSourceLookup *[][]int, irrSimVal, noIrrSimVal []int,
 	writeIrrigatedRows(file, extRow, extCol, minVal, maxVal, irrSimVal, noIrrSimVal, gridSourceLookup, irrLookup)
 
 	file.Close()
-	title := titleFormat
-	writeMetaFile(gridFilePath, title, labelText, colormap, colorlist, cbarLabel, ticklist, factor, maxVal, minVal, minColor)
+	//title := titleFormat
+	title := "" //lazy hack to remove the title 😶
+	writeMetaFile(gridFilePath, title, labelText, colormap, colorlist, cbarLabel, ticklist, factor, maxVal, minVal, minColor, showbar)
 
 	outC <- filenameDescPart
 }
@@ -793,7 +794,7 @@ func drawDateMaps(gridSourceLookup [][]int, grids map[SimKeyTuple][]int, filenam
 		writeRows(file, extRow, extCol, simVal, gridSourceLookup)
 		file.Close()
 		title := fmt.Sprintf(titleFormat, simKey.climateSenario, simKey.crop, simKey.comment)
-		writeMetaFile(gridFilePath, title, labelText, colormap, nil, cbarLabel, ticklist, factor, maxVal, minVal, "")
+		writeMetaFile(gridFilePath, title, labelText, colormap, nil, cbarLabel, ticklist, factor, maxVal, minVal, "", true)
 
 		if showBar {
 			currentInput++
@@ -871,7 +872,7 @@ func (f Fout) Close() {
 	f.file.Close()
 }
 
-func writeMetaFile(gridFilePath, title, labeltext, colormap string, colorlist []string, cbarLabel []string, ticklist []float64, factor float64, maxValue, minValue int, minColor string) {
+func writeMetaFile(gridFilePath, title, labeltext, colormap string, colorlist []string, cbarLabel []string, ticklist []float64, factor float64, maxValue, minValue int, minColor string, showBar bool) {
 	metaFilePath := gridFilePath + ".meta"
 	makeDir(metaFilePath)
 	file, err := os.OpenFile(metaFilePath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
@@ -879,8 +880,12 @@ func writeMetaFile(gridFilePath, title, labeltext, colormap string, colorlist []
 		log.Fatal(err)
 	}
 	defer file.Close()
-	file.WriteString(fmt.Sprintf("title: '%s'\n", title))
-	file.WriteString(fmt.Sprintf("labeltext: '%s'\n", labeltext))
+	if len(title) > 0 {
+		file.WriteString(fmt.Sprintf("title: '%s'\n", title))
+	}
+	if len(labeltext) > 0 {
+		file.WriteString(fmt.Sprintf("labeltext: '%s'\n", labeltext))
+	}
 	if colormap != "" {
 		file.WriteString(fmt.Sprintf("colormap: '%s'\n", colormap))
 	}
@@ -912,7 +917,11 @@ func writeMetaFile(gridFilePath, title, labeltext, colormap string, colorlist []
 	if len(minColor) > 0 {
 		file.WriteString(fmt.Sprintf("minColor: %s\n", minColor))
 	}
+	file.WriteString("removeEmptyColumns: False\n")
 	file.WriteString("border: True\n")
+	if !showBar {
+		file.WriteString("showbar: False\n")
+	}
 }
 func getMaskGridLookup(gridsource string) map[GridCoord]bool {
 	lookup := make(map[GridCoord]bool)
