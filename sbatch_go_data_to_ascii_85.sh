@@ -4,7 +4,7 @@
 #SBATCH --cpus-per-task=80
 #SBATCH --partition=compute
 #SBATCH --job-name=go_ascii
-#SBATCH --time=01:00:00
+#SBATCH --time=10:00:00
 
 
 # download go image
@@ -35,10 +35,12 @@ singularity run ~/singularity/other/golang_1.14.4.sif go get github.com/cheggaaa
     go get gonum.org/v1/gonum/stat && \
     go build -v -o DataToAscii
 
-./DataToAscii -path Cluster -crop maize -source /beegfs/rpm/projects/monica/out/sschulz_2296_2021-03-June_213258 -project /beegfs/rpm/projects/monica/project/soybeanEU -out .
-./DataToAscii -path Cluster -crop wheat -source /beegfs/rpm/projects/monica/out/sschulz_2296_2021-03-June_213258 -project /beegfs/rpm/projects/monica/project/soybeanEU -out .
+mkdir -p rpc_85
+
+./DataToAscii -path Cluster -crop maize -source /beegfs/rpm/projects/monica/out/sschulz_2296_2021-03-June_213258 -project /beegfs/rpm/projects/monica/project/soybeanEU -out ./rpc_85
+./DataToAscii -path Cluster -crop wheat -source /beegfs/rpm/projects/monica/out/sschulz_2296_2021-03-June_213258 -project /beegfs/rpm/projects/monica/project/soybeanEU -out ./rpc_85
 
 
 FOLDER=$( pwd )
 IMG=~/singularity/python/python3.7_2.0.sif
-singularity run -B $FOLDER/asciigrid:/source,$FOLDER:/out $IMG python create_image_from_ascii.py path=cluster
+singularity run -B $FOLDER/rpc_85/asciigrid:/source,$FOLDER/rpc_85:/out $IMG python create_image_from_ascii.py path=cluster

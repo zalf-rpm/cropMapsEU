@@ -4,7 +4,7 @@
 #SBATCH --cpus-per-task=80
 #SBATCH --partition=compute
 #SBATCH --job-name=go_ascii
-#SBATCH --time=01:00:00
+#SBATCH --time=10:00:00
 
 
 # download go image
