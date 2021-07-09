@@ -126,13 +126,6 @@
 			"WaterDeficitResponseOn": true,
 			"FrostKillOn": true,
 			"Irrigate": false
-		},
-		{
-			"TrtNo": "T2",
-			"ProdCase": "irrigated",
-			"WaterDeficitResponseOn": true,
-			"FrostKillOn": true,
-			"Irrigate": true
 		}
 	]	
 }
