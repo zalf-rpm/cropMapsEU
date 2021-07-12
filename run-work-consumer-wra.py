@@ -142,10 +142,8 @@ def create_output(soil_ref, crop_id, first_cp, co2_id, co2_value, period, gcm, t
                 ])
                 '''
                 current_crop = vals["Crop"],
-                if "maize" in current_crop[0]:
-                    AntDOY = vals.get("AntDOY_maize", "na")
-                elif "wheat" in current_crop[0]:
-                    AntDOY = vals.get("AntDOY_wheat", "na")
+                if "rape" in current_crop[0]:
+                    AntDOY = vals.get("AntDOY_rape", "na")
                 
                 #calculate SWC (i.e., SWC-PWP [mm])
                 def convert_SWC(SWC, PWP, depth_mm):
