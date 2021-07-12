@@ -225,8 +225,8 @@ def run_producer(config):
             str = crop["cropRotation"][0]["worksteps"][0]["latest-date"]
             crop["cropRotation"][0]["worksteps"][0]["latest-date"] = doyToDate(1981, sowFe, str)
             # harvest
-            str = crop["cropRotation"][0]["worksteps"][1]["latest-date"]
-            crop["cropRotation"][0]["worksteps"][1]["latest-date"]= doyToDate(1981, harF, str)
+            str = crop["cropRotation"][0]["worksteps"][4]["latest-date"]
+            crop["cropRotation"][0]["worksteps"][4]["latest-date"]= doyToDate(1981, harF, str)
 
         for idxcr in range(0,2) :
             mDat = dates[soil_ref]            
