@@ -108,7 +108,11 @@ def run_producer(config):
 
     with open(template_folder + "sims.json") as _:
         sims = json.load(_)
-
+    # load extra files for crop rotations
+    with open(template_folder + "crop_wb_wra.json") as _:
+        crop_rot_wb_wra = json.load(_)
+    with open(template_folder + "crop_wra_wb.json") as _:
+        crop_rot_wra_wb = json.load(_)
     period_gcm_co2s = [
         {"id": "C1", "period": "0", "gcm": "0_0", "co2_value": 360},
 
@@ -217,20 +221,38 @@ def run_producer(config):
         site["SiteParameters"]["Latitude"] = custom_site["latitude"]
         site["SiteParameters"]["SoilProfileParameters"] = custom_site["soil-profile"]
 
-        def setDates( sowFs,sowFe,harF) :
-            #sowing first crop
-            str = crop["cropRotation"][0]["worksteps"][0]["earliest-date"] 
-            crop["cropRotation"][0]["worksteps"][0]["earliest-date"] = doyToDate(1981, sowFs, str)
+        def setDates( sowFs,sowFe,harF, isfirst) :
+            if isfirst :
+                #sowing first crop
+                str = crop["cropRotation"][0]["worksteps"][0]["earliest-date"] 
+                crop["cropRotation"][0]["worksteps"][0]["earliest-date"] = doyToDate(1981, sowFs, str)
 
-            str = crop["cropRotation"][0]["worksteps"][0]["latest-date"]
-            crop["cropRotation"][0]["worksteps"][0]["latest-date"] = doyToDate(1981, sowFe, str)
-            # harvest
-            str = crop["cropRotation"][0]["worksteps"][4]["latest-date"]
-            crop["cropRotation"][0]["worksteps"][4]["latest-date"]= doyToDate(1981, harF, str)
+                str = crop["cropRotation"][0]["worksteps"][0]["latest-date"]
+                crop["cropRotation"][0]["worksteps"][0]["latest-date"] = doyToDate(1981, sowFe, str)
+                # harvest
+                str = crop["cropRotation"][0]["worksteps"][4]["latest-date"]
+                crop["cropRotation"][0]["worksteps"][4]["latest-date"]= doyToDate(1981, harF, str)
+            else :   
+                #sowing first crop
+                str = crop["cropRotation"][0]["worksteps"][0]["earliest-date"] 
+                crop["cropRotation"][0]["worksteps"][0]["earliest-date"] = doyToDate(1981, sowFs, str)
 
+                str = crop["cropRotation"][0]["worksteps"][0]["latest-date"]
+                crop["cropRotation"][0]["worksteps"][0]["latest-date"] = doyToDate(1981, sowFe, str)
+                # harvest
+                str = crop["cropRotation"][0]["worksteps"][4]["latest-date"]
+                crop["cropRotation"][0]["worksteps"][4]["latest-date"]= doyToDate(1981, harF, str)
         for idxcr in range(0,2) :
             mDat = dates[soil_ref]            
             setDates(mDat["sowStart"],mDat["sowEnd"],mDat["harvest"])
+     
+            if idxcr == 0 :
+                crop["cropRotation"] = crop_rot_wb_wra["cropRotation"]
+                setDates(mDat["sowStart"],mDat["sowEnd"],mDat["harvest"], False)
+            else :
+                crop["cropRotation"] = crop_rot_wra_wb["cropRotation"]
+                setDates(mDat["sowStart"],mDat["sowEnd"],mDat["harvest"], True)
+
 
             env = monica_io3.create_env_json_from_json_config({
                 "crop": crop,
