@@ -22,10 +22,6 @@
 		"AN": [
 			"include-from-file",
 			"mineral-fertilisers/AN.json"
-		],
-		"CADLM": [
-			"include-from-file",
-			"organic-fertilisers/CADLM.json"
 		]
 	},
 	"cropRotation": [
