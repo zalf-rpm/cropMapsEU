@@ -37,8 +37,8 @@ singularity run ~/singularity/other/golang_1.14.4.sif go get github.com/cheggaaa
 
 mkdir -p rpc_85
 
-./DataToAscii -path Cluster -crop maize -source /beegfs/rpm/projects/monica/out/sschulz_2296_2021-03-June_213258 -project /beegfs/rpm/projects/monica/project/soybeanEU -out ./rpc_85
-./DataToAscii -path Cluster -crop wheat -source /beegfs/rpm/projects/monica/out/sschulz_2296_2021-03-June_213258 -project /beegfs/rpm/projects/monica/project/soybeanEU -out ./rpc_85
+./DataToAscii -path Cluster -crop maize -source /beegfs/rpm/projects/monica/out/sschulz_2669_2021-08-November_142026 -project /beegfs/rpm/projects/monica/project/soybeanEU -out ./rpc_85
+./DataToAscii -path Cluster -crop wheat -source /beegfs/rpm/projects/monica/out/sschulz_2669_2021-08-November_142026 -project /beegfs/rpm/projects/monica/project/soybeanEU -out ./rpc_85
 
 
 FOLDER=$( pwd )
