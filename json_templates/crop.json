@@ -2,117 +2,21 @@
 	"maize": {
 		"SM": {
 			"cropParams": {
-				"species": {
-					"=": [
-						"include-from-file",
-						"projects/sustag/maize.json"
-					],
-					"MaximumTemperatureForAssimilation": 46
-				},
-				"cultivar": {
-					"=": [
-						"include-from-file",
-						"projects/sustag/silage-maize.json"
-					],
-					"MaxAssimilationRate": 70,
-					"BeginSensitivePhaseHeatStress": 0,
-					"EndSensitivePhaseHeatStress": 0,
-					"OrganIdsForSecondaryYield": [
-						{
-							"organId": 2,
-							"type": "YieldComponent",
-							"yieldDryMatter": 0.32,
-							"yieldPercentage": 0.1
-						},
-						{
-							"organId": 3,
-							"type": "YieldComponent",
-							"yieldDryMatter": 0.32,
-							"yieldPercentage": 0.1
-						}
-					]
-				}
-			},
-			"residueParams": [
-				"include-from-file",
-				"crop-residues/maize.json"
-			]
+						"species": ["include-from-file", "crops/species/maize.json"],
+						"cultivar": ["include-from-file", "crops/cultivars/silage-maize_bs.json"]
+					},
+			"residueParams": ["include-from-file", "crops/residues/maize.json"]
 		}
 	},
 	"wheat": {
 		"WW": {
+			"is-winter-crop": true,
 			"cropParams": {
-				"species": {
-					"=": [ "include-from-file", "projects/sustag/wheat.json" ]
-				},
-				"cultivar": {
-					"=": [ "include-from-file", "projects/sustag/winter-wheat.json" ],
-					"BeginSensitivePhaseHeatStress": 0,
-					"EndSensitivePhaseHeatStress": 0,
-					"OrganIdsForSecondaryYield": [
-						{
-							"organId": 2,
-							"type": "YieldComponent",
-							"yieldDryMatter": 0.86,
-							"yieldPercentage": 1
-						},
-						{
-							"organId": 3,
-							"type": "YieldComponent",
-							"yieldDryMatter": 0.86,
-							"yieldPercentage": 1
-						},
-						{
-							"organId": 4,
-							"type": "YieldComponent",
-							"yieldDryMatter": 0.86,
-							"yieldPercentage": 0.15
-						}
-					],
-					"MaxAssimilationRate": 29,
-					"AssimilatePartitioningCoeff": [
-						[
-							0.5,
-							0.5,
-							0,
-							0
-						],
-						[
-							0.25,
-							0.4,
-							0.35,
-							0
-						],
-						[
-							0.13,
-							0.2,
-							0.57,
-							0.1
-						],
-						[
-							0,
-							0,
-							0,
-							1
-						],
-						[
-							0,
-							0,
-							0,
-							1
-						],
-						[
-							0,
-							0,
-							0,
-							0
-						]
-					]
-				}
+				"species": ["include-from-file", "crops/species/wheat.json"],
+				"cultivar": ["include-from-file", "crops/cultivars/winter-wheat_bs.json"]
 			},
-			"residueParams": [ "include-from-file", "crop-residues/wheat.json" ]
+			"residueParams": ["include-from-file", "crops/residues/wheat.json"]
 		}
-
 	},
 	"fert-params": {
 		"AN": [
