@@ -41,12 +41,12 @@ PATHS = {
     "localProducer-remoteMonica": {
         "monica-project-data": ".",
         "monica-parameters-path": "D:/zalfrpm/monica-parameters/", # path to monica-parameters
-        "monica-path-to-climate-dir": "/monica_data/climate-data/macsur_european_climate_scenarios_v3/testing/corrected/", # mounted path to archive accessable by monica executable
+        "monica-path-to-climate-dir": "/monica_data/climate-data/macsur_european_climate_scenarios_v3/transformed/", # mounted path to archive accessable by monica executable
     },
     "remoteProducer-remoteMonica": {
         "monica-project-data": "/project/soybeanEU/",
         "monica-parameters-path": "./json_templates/params", # path to monica-parameters
-        "monica-path-to-climate-dir": "/monica_data/climate-data/macsur_european_climate_scenarios_v3/testing/corrected/" # mounted path to archive accessable by monica executable
+        "monica-path-to-climate-dir": "/monica_data/climate-data/macsur_european_climate_scenarios_v3/transformed/" # mounted path to archive accessable by monica executable
     }
 }
 # local testing: python .\run-work-producer.py server-port=6004 mode=localProducer-remoteMonica > out_producer.txt
@@ -289,9 +289,9 @@ def run_producer(config):
                 if USER_MODE == "localProducer-localMonica":
                     climatefile_version = "v1"
                 elif USER_MODE == "localProducer-remoteMonica":
-                    climatefile_version = "v3test"
+                    climatefile_version = "v3"
                 elif USER_MODE == "remoteProducer-remoteMonica":
-                    climatefile_version = "v3test"
+                    climatefile_version = "v3"
                 climateLocation = soil[soil_ref]["climate_location"]
                 climate_filename = "{}_{}.csv".format(climateLocation, climatefile_version)
 
